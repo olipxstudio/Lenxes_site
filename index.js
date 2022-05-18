@@ -45,6 +45,11 @@ app.get("/task3", (req, res) => {
 app.get("/login", (req, res) => {
     res.status(200).send("A login API");
 });
+
+// Task four
+app.get("/register", (req, res) => {
+  res.status(200).send("A register API");
+});
   
 app.listen(port, () => {
   console.log(`Server running on port http://localhost:${port}`);
