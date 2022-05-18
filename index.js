@@ -80,7 +80,7 @@ app.get("/users", (req, res) => {
 
 console.log(generateUniqueUserId());
 
-// SIgn up a new User
+// Sign up a new User
 app.get("/register", (req, res) => {
   res.status(200).send("A register API");
 });
