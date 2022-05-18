@@ -36,7 +36,6 @@ app.post("/api/v1/auth/signup", (req, res, next) => {
     if (err) {
       return serverError(res, err);
     }
-
     if (results.length === 0) {
       next();
     } else {
@@ -97,15 +96,10 @@ app.get("/users", (req, res) => {
 
 console.log(generateUniqueUserId());
 
-// Sign up a new User
-app.get("/register", (req, res) => {
-  res.status(200).send("A register API");
-});
-
-// Task six
-app.get("/signup", (req, res) => {
-  res.status(200).send("A signup API");
-});
+const signUpRoute = require('./routes/users/signup')
+const userActionRoute = require('./routes/users/actions')
+app.use('/signup', signUpRoute)
+app.use('/action', userActionRoute)
 
 app.listen(port, () => {
   console.log(`Server running on port http://localhost:${port}`);
