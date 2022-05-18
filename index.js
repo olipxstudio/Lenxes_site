@@ -69,16 +69,6 @@ app.get("/users", (req, res) => {
   }
 });
 
-// Making correction to the repo
-app.get("/task", (req, res) => {
-  res.status(200).send("Just a test API");
-});
-
-// Task three
-app.get("/task3", (req, res) => {
-  res.status(200).send("Just a test API");
-});
-
 // Task four
 app.get("/login", (req, res) => {
   res.status(200).send("A login API");
