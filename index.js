@@ -95,12 +95,9 @@ app.get("/users", (req, res) => {
   }
 });
 
-// Login to API
-app.get("/login", (req, res) => {
-  res.status(200).send("A login API");
-});
+console.log(generateUniqueUserId());
 
-// SIgn up a new User
+// Sign up a new User
 app.get("/register", (req, res) => {
   res.status(200).send("A register API");
 });
