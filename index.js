@@ -7,6 +7,7 @@ const {
   clientError,
   serverError,
   generateUniqueUserId,
+  verifyEmail,
 } = require("./utils/common");
 const app = express();
 
@@ -31,6 +32,8 @@ app.get("/", (req, res) => {
 app.post("/create", (req, res) => {
   const { email, password } = req.body;
   generateUniqueUserId();
+  const valideEmai = verifyEmail(email);
+  console.log(valideEmai);
   try {
     const newUser = `INSERT INTO users (email, password) VALUES ('${email}', '${password}')`;
     db.query(newUser, (err, result) => {
