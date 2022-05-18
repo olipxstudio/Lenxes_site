@@ -33,7 +33,9 @@ app.post("/create", (req, res) => {
   const { email, password } = req.body;
   generateUniqueUserId();
   const valideEmai = verifyEmail(email);
-  console.log(valideEmai);
+  if (!valideEmai) {
+    return clientError(res, "Invalid email");
+  }
   try {
     const newUser = `INSERT INTO users (email, password) VALUES ('${email}', '${password}')`;
     db.query(newUser, (err, result) => {
