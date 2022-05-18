@@ -1,3 +1,5 @@
+const crypto = require("crypto");
+
 const serverError = (res, error) => {
   return res.status(500).json({
     success: false,
@@ -16,12 +18,13 @@ const clientError = (res, err) => {
 
 // generate unique user id
 const generateUniqueUserId = () => {
-  return console.log("Unique User Id");
-}
+  const userId = crypto.randomBytes(20).toString("hex");
+  return userId;
+};
 
 //   export default serverError;
 module.exports = {
   serverError,
   clientError,
-  generateUniqueUserId
+  generateUniqueUserId,
 };

@@ -3,7 +3,11 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql2");
-const { clientError, serverError, generateUniqueUserId } = require("./utils/common");
+const {
+  clientError,
+  serverError,
+  generateUniqueUserId,
+} = require("./utils/common");
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
@@ -68,6 +72,8 @@ app.get("/users", (req, res) => {
     serverError(res, error);
   }
 });
+
+console.log(generateUniqueUserId());
 
 // Making correction to the repo
 app.get("/task", (req, res) => {
