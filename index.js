@@ -28,10 +28,27 @@ app.get("/", (req, res) => {
   res.status(200).send("Welcome");
 });
 
+// check if email already exists
+app.post("/api/v1/auth/signup", (req, res, next) => {
+  const { email } = req.body;
+  const sql = "SELECT * FROM users WHERE email = ?";
+  db.query(sql, [email], (err, results) => {
+    if (err) {
+      return serverError(res, err);
+    }
+
+    if (results.length === 0) {
+      next();
+    } else {
+      return clientError(res, "Email already exists");
+    }
+  });
+});
+
 // Omega just cloned and made hs first commit
 app.post("/create", (req, res) => {
   const { email, password } = req.body;
-  generateUniqueUserId();
+  const uniqueID = generateUniqueUserId();
   const valideEmai = verifyEmail(email);
   if (!valideEmai) {
     return clientError(res, "Invalid email");
@@ -77,8 +94,6 @@ app.get("/users", (req, res) => {
     serverError(res, error);
   }
 });
-
-console.log(generateUniqueUserId());
 
 // Login to API
 app.get("/login", (req, res) => {
