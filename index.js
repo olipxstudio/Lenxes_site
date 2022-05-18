@@ -36,6 +36,11 @@ app.get("/task", (req, res) => {
   res.status(200).send("Just a test API");
 });
 
+// Task three
+app.get("/task3", (req, res) => {
+  res.status(200).send("Just a test API");
+});
+
 app.listen(port, () => {
   console.log(`Server running on port http://localhost:${port}`);
 });
