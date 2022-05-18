@@ -14,8 +14,14 @@ const clientError = (res, err) => {
   });
 };
 
+// generate unique user id
+const generateUniqueUserId = () => {
+  return console.log("Unique User Id");
+}
+
 //   export default serverError;
 module.exports = {
   serverError,
   clientError,
+  generateUniqueUserId
 };

@@ -3,7 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql2");
-const { clientError, serverError } = require("./utils/common");
+const { clientError, serverError, generateUniqueUserId } = require("./utils/common");
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
@@ -26,6 +26,7 @@ app.get("/", (req, res) => {
 // Omega just cloned and made hs first commit
 app.post("/create", (req, res) => {
   const { email, password } = req.body;
+  generateUniqueUserId();
   try {
     const newUser = `INSERT INTO users (email, password) VALUES ('${email}', '${password}')`;
     db.query(newUser, (err, result) => {
