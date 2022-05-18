@@ -1,14 +1,18 @@
-require("dotenv").config();
+const dotenv = require("dotenv");
+dotenv.config({ path: "./config/_config.env" });
 
 const express = require("express");
 const cors = require("cors");
-const mysql = require("mysql2");
 const {
   clientError,
   serverError,
   generateUniqueUserId,
-  verifyEmail,
 } = require("./utils/common");
+const {
+  validateUserEmail,
+  checkIfUserAlreadyExist,
+} = require("./utils/middlewares");
+const db = require("./config/db");
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
@@ -16,13 +20,6 @@ app.use(express.json());
 app.use(cors());
 
 const port = process.env.SERVER_PORT || 4000;
-
-const db = mysql.createConnection({
-  host: process.env.HOST,
-  user: process.env.USERS,
-  password: process.env.PASSWORD,
-  database: process.env.DATABASE,
-});
 
 app.get("/", (req, res) => {
   res.status(200).send("Welcome");
@@ -45,13 +42,9 @@ app.post("/api/v1/auth/signup", (req, res, next) => {
 });
 
 // Omega just cloned and made hs first commit
-app.post("/create", (req, res) => {
+app.post("/create", validateUserEmail, checkIfUserAlreadyExist, (req, res) => {
   const { email, password } = req.body;
   const uniqueID = generateUniqueUserId();
-  const valideEmai = verifyEmail(email);
-  if (!valideEmai) {
-    return clientError(res, "Invalid email");
-  }
   try {
     const newUser = `INSERT INTO users (email, password) VALUES ('${email}', '${password}')`;
     db.query(newUser, (err, result) => {
