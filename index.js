@@ -31,6 +31,11 @@ app.get("/omega", (req, res) => {
   res.status(200).send("Omega is here. One Love <3.");
 });
 
+// Making correction to the repo
+app.get("/task", (req, res) => {
+  res.status(200).send("Just a test API");
+});
+
 app.listen(port, () => {
   console.log(`Server running on port http://localhost:${port}`);
 });
