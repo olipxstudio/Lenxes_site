@@ -10,14 +10,14 @@ app.use(express.json());
 app.use(cors());
 
 const host_name = process.env.HOST;
-const user_name = process.env.USER;
+const usersid = process.env.USERS;
 const password_name = process.env.PASSWORD;
 const database_name = process.env.DATABASE;
 const port = process.env.SERVER_PORT || 4000;
 
 const db = mysql.createConnection({
   host: host_name,
-  user: "root",
+  user: usersid,
   password: password_name,
   database: database_name,
 });
@@ -27,8 +27,16 @@ app.get("/", (req, res) => {
 });
 
 // Omega just cloned and made hs first commit
-app.get("/omega", (req, res) => {
-  res.status(200).send("Omega is here. One Love <3.");
+app.post("/create", (req, res) => {
+  let {email, password} = req.body;
+  let send = `INSERT INTO users (email, password) VALUES ('${email}', '${password}')`;
+  db.query(send, (err, result) => {
+      if(err){
+        res.send(err);
+      }else{
+        res.send(result);
+      }
+  })
 });
 
 // Making correction to the repo
