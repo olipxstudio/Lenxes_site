@@ -80,12 +80,12 @@ app.get("/users", (req, res) => {
 
 console.log(generateUniqueUserId());
 
-// Task four
+// Login to API
 app.get("/login", (req, res) => {
   res.status(200).send("A login API");
 });
 
-// Task five
+// SIgn up a new User
 app.get("/register", (req, res) => {
   res.status(200).send("A register API");
 });
