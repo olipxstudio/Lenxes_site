@@ -1,4 +1,4 @@
-const db = require("../config/db");
+const db = require("../01_config/db");
 const { serverError, clientError } = require("./common");
 
 // Check if user already exists

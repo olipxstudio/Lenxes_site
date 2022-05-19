@@ -5,10 +5,12 @@ const { createNewUser } = require("../../controllers/users/postController");
 const {
   validateUserEmail,
   checkIfUserAlreadyExist,
-} = require("../../utils/middlewares");
+} = require("../../02_utils/middlewares");
+const { createUsersTable } = require("../../schemas/users");
 
 router.post(
   "/user/new",
+  createUsersTable,
   validateUserEmail,
   checkIfUserAlreadyExist,
   createNewUser
