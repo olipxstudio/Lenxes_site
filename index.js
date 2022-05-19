@@ -2,6 +2,7 @@ require("dotenv").config({ path: "./config/_config.env" });
 
 const express = require("express");
 const cors = require("cors");
+const { clientError } = require("./utils/common");
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
@@ -13,8 +14,8 @@ const port = process.env.SERVER_PORT || 4000;
 app.use("/api/users/post", require("./routes/users/postApi"));
 app.use("/api/users/get", require("./routes/users/getApi"));
 
-app.get("/", (req, res) => {
-  res.status(200).send("Welcome");
+app.use("*", (req, res) => {
+  clientError(res, "Page not found")
 });
 
 app.listen(port, () => {
