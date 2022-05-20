@@ -10,9 +10,7 @@ const { createUsersTable } = require("../../schemas/users");
 
 router.post(
   "/user/new",
-  createUsersTable,
   validateUserEmail,
-  checkIfUserAlreadyExist,
   createNewUser
 );
 
