@@ -1,4 +1,5 @@
 const db = require("../../01_config/db");
+const User = require('../../models/users/User');
 const { clientError, serverError } = require("../../02_utils/common");
 
 // create new user
@@ -24,10 +25,18 @@ const { clientError, serverError } = require("../../02_utils/common");
 // };
 
 // MONGODB
-// exports.getAllUsers = async (req, res) => {
-//     try {
-//       const result = ;
-//     } catch (error) {
-//       serverError(res, error);
-//     }
-//   };
+exports.getAllUsers = async (req, res) => {
+    try {
+        const result = await User.find({});
+        User.events.on('error', err => {
+            return clientError(res,err);
+        });
+        res.status(200).json({
+            success: true,
+            message: "Users fetched",
+            data: result,
+        });
+    } catch (error) {
+        serverError(res, error);
+    }
+  };
