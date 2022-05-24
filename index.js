@@ -17,6 +17,7 @@ app.use(cors());
 const port = process.env.SERVER_PORT || 4000;
 
 app.use("/api/users/post", require("./routes/users/postApi"));
+app.use("/api/users/patch", require("./routes/users/patchApi"));
 app.use("/api/users/get", require("./routes/users/getApi"));
 
 app.use("*", (req, res) => {
