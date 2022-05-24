@@ -16,54 +16,57 @@ exports.createNewUser = async (req, res) => {
   
 
 
-  try {
-    const user = new User({
-      fullname: req.body.fullname,
-      email: req.body.email,
-      phone: req.body.phone,
-      profession: req.body.profession,
-      // we will get the location data from a location API
-      // address:{
-      //   name: name,
-      //   address_line1: address_line1,
-      //   address_line2: address_line2,
-      //   category: category,
-      //   country: country,
-      //   country_code: country_code,
-      //   lga: lga,
-      //   formatted: formatted,
-      //   lat: lat,
-      //   lon: lon,
-      //   address_type: result_type,
-      //   state: state,
-      //   state_code: state_code,
-      // },
-      status: "Active",
-    });
+    try {
+        const user = new User({
+            fullname: req.body.fullname,
+            email: req.body.email,
+            phone: req.body.phone,
+            profession: req.body.profession,
+            followers:0,
+            following:0,
+            posts:0,
+            // we will get the location data from a location API
+            // address:{
+            //   name: name,
+            //   address_line1: address_line1,
+            //   address_line2: address_line2,
+            //   category: category,
+            //   country: country,
+            //   country_code: country_code,
+            //   lga: lga,
+            //   formatted: formatted,
+            //   lat: lat,
+            //   lon: lon,
+            //   address_type: result_type,
+            //   state: state,
+            //   state_code: state_code,
+            // },
+            status: "Active",
+        });
 
 
-      // create user
-      const newUser = await user.save();
+        // create user
+        const newUser = await user.save();
 
-      const { _id, fullname, phone, email, status } = newUser;
+        const { _id, fullname, phone, email, status } = newUser;
 
-      // create token to sign in user after registration
-      const token = createToken({ _id });
+        // create token to sign in user after registration
+        const token = createToken({ _id });
 
-      return res.status(200).json({
+        return res.status(200).json({
         success: true,
         token: token,
         message: "Account created sucessfully",
         data: {
-          _id,
-          phone,
-          email,
-          status,
-          fullname,
+            _id,
+            phone,
+            email,
+            status,
+            fullname,
         },
-      });
-  } catch (error) {
-    // we check to see if the error type is "ValidationError", then map and retrieve the error message which we defined in our User Schema.
-    useValidationError(res,error)
-  }
+        });
+    } catch (error) {
+        // we check to see if the error type is "ValidationError", then map and retrieve the error message which we defined in our User Schema.
+        useValidationError(res,error)
+    }
 };

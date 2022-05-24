@@ -92,13 +92,13 @@ const UserSchema = new mongoose.Schema({
         type: String,
     },
     followers:{
-        type: String,
+        type: Number,
     },
     following:{
-        type: String,
+        type: Number,
     },
     posts:{
-        type: String,
+        type: Number,
     }
   },
   {
