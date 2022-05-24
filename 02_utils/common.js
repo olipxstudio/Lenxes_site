@@ -17,20 +17,15 @@ const clientError = (res, err) => {
   });
 };
 
-const useValidationError = (res, error) =>{
+const useValidationError = (res, error) => {
   if (error.name === "ValidationError") {
     const messages = Object.values(error.errors).map((val) => val.message);
     return clientError(res, messages);
   } else {
     return serverError(res, error);
   }
-}
-
-// generate unique user id
-const generateUniqueUserId = () => {
-  const userId = crypto.randomBytes(20).toString("hex");
-  return userId;
 };
+
 const createToken = (user) => {
   const accessToken = jwt.sign(user, `${process.env.DEVELOPER_SECRETE}`, {
     // expiresIn: "24h",
@@ -39,12 +34,34 @@ const createToken = (user) => {
   return accessToken;
 };
 
+// validate user token
+const validateUserToken = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  if (authHeader) {
+    const token = authHeader.split(" ")[1];
+    jwt.verify(token, `${process.env.DEVELOPER_SECRETE}`, (err, user) => {
+      if (err) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid token",
+        });
+      }
+      req.user = user;
+      next();
+    });
+  } else {
+    return res.status(401).json({
+      success: false,
+      message: "Auth token is not supplied",
+    });
+  }
+};
 
 //   export default serverError;
 module.exports = {
   serverError,
   clientError,
-  generateUniqueUserId,
   createToken,
-  useValidationError
+  useValidationError,
+  validateUserToken,
 };

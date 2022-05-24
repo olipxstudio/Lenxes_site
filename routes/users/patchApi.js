@@ -1,16 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
-const { patchUser } = require("../../controllers/users/patchControllers");
 const {
-  validateUserEmail,
-  checkIfUserAlreadyExist,
-} = require("../../02_utils/middlewares");
+  updateUserSecurity,
+} = require("../../controllers/users/patchControllers");
+const { validateUserToken } = require("../../02_utils/common");
 
-router.patch(
-  "/account_security",
-  validateUserEmail,
-  patchUser
-);
+router.patch("/updateSecurity", validateUserToken, updateUserSecurity);
 
 module.exports = router;

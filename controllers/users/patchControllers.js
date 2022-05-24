@@ -1,33 +1,23 @@
 const db = require("../../01_config/db");
-const User = require('../../models/users/User')
-const {
-  generateUniqueUserId,
-  clientError,
-  serverError,
-} = require("../../02_utils/common");
+const User = require("../../models/users/User");
+const { clientError, serverError } = require("../../02_utils/common");
 
 // create new user
-// @desc: create new user account || @route: POST /api/users/post/create  || @access:public
-exports.createNewUser = async (req, res) => {
-  const { username, password } = req.body;
+// @desc: update user security data || @route: PATCH /api/users/patch/updateSecurity  || @access:public
+exports.updateUserSecurity = async (req, res) => {
+  const { password, username } = req.body;
+  const { _id } = req.user;
   try {
-    //   const result = new User({
-    //       fullname,
-    //       email,
-    //       phone,
-    //       profession,
-    //       country,
-    //       state,
-    //       city
-    //   })
-    //   await result.save()
-    //   if(result){
-    //         res.status(200).json({
-    //             success: true,
-    //             message: "User created",
-    //             data: result,
-    //         });
-    //   }
+    const user = await User.findById(_id);
+    user.password = await User.encryptPassword(password);
+    user.username = username;
+    const updatedUser = await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "User security data updated successfully",
+      data: updatedUser,
+    });
   } catch (error) {
     serverError(res, error);
   }
