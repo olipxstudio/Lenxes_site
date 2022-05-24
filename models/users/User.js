@@ -19,6 +19,9 @@ const UserSchema = new mongoose.Schema({
       type: String,
       required: [true, "Please enter a valid phone"],
     },
+    profession:{
+        type: String,
+    },
     address: {
       name: {
         type: String,
@@ -76,13 +79,13 @@ const UserSchema = new mongoose.Schema({
     status: {
       type: String,
     },
-    profession:{
-        type: String,
-    },
     photo:{
         type: String,
     },
     bio:{
+        type: String,
+    },
+    category:{
         type: String,
     },
     uri:{
