@@ -91,6 +91,15 @@ const UserSchema = new mongoose.Schema({
     uri:{
         type: String,
     },
+    followers:{
+        type: String,
+    },
+    following:{
+        type: String,
+    },
+    posts:{
+        type: String,
+    }
   },
   {
     timestamps: true,
