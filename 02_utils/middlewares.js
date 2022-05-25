@@ -35,7 +35,7 @@ exports.checkImage = (req, res, next) => {
     }
 
     if (image.size > process.env.MAX_FILE_UPLOAD) {
-      return clientError(res, "Please upload an image less than 1mb");
+      return clientError(res, "Please upload an image less than 5mb");
     }
 
     req.image = image;
