@@ -1,4 +1,3 @@
-const db = require("../../01_config/db");
 const User = require("../../models/users/User");
 const { clientError, serverError } = require("../../02_utils/common");
 
@@ -16,6 +15,47 @@ exports.updateUserSecurity = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "User security data updated successfully",
+      data: updatedUser,
+    });
+  } catch (error) {
+    serverError(res, error);
+  }
+};
+
+// upload user profile picture from req.imageUrl
+// @desc: upload user profile picture || @route: PATCH /api/users/patch/uploadProfilePicture  || @access:public
+exports.uploadUserProfilePicture = async (req, res) => {
+  const { _id } = req.user;
+  try {
+    const user = await User.findById(_id);
+    user.photo = req.imageUrl;
+    const updatedUser = await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "User profile picture updated successfully",
+      data: updatedUser,
+    });
+  } catch (error) {
+    serverError(res, error);
+  }
+};
+
+// update user bio, category, and website
+// @desc: update user bio, category, and website || @route: PATCH /api/users/patch/updateUserProfile  || @access:public
+exports.updateUserProfile = async (req, res) => {
+  const { _id } = req.user;
+  const { bio, category, website } = req.body;
+  try {
+    const user = await User.findById(_id);
+    user.bio = bio;
+    user.category = category;
+    user.website = website;
+    const updatedUser = await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "User profile updated successfully",
       data: updatedUser,
     });
   } catch (error) {

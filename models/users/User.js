@@ -1,9 +1,8 @@
-
-
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
-const UserSchema = new mongoose.Schema({
+const UserSchema = new mongoose.Schema(
+  {
     fullname: {
       type: String,
     },
@@ -19,99 +18,91 @@ const UserSchema = new mongoose.Schema({
       type: String,
       required: [true, "Please enter a valid phone"],
     },
-    profession:{
-        type: String,
+    profession: {
+      type: String,
     },
     address: {
       name: {
         type: String,
-        default: null
+        default: null,
       },
       address_line1: {
         type: String,
-        default: null
+        default: null,
       },
       address_line2: {
         type: String,
-        default: null
+        default: null,
       },
       country: {
         type: String,
-        default: null
+        default: null,
       },
       country_code: {
         type: String,
-        default: null
+        default: null,
       },
       lga: {
         type: String,
-        default: null
+        default: null,
       },
       formatted: {
         type: String,
-        default: null
+        default: null,
       },
       lat: {
         type: Number,
-        default: null
+        default: null,
       },
       lon: {
         type: Number,
-        default: null
+        default: null,
       },
       address_type: {
         type: String,
-        default: null
+        default: null,
       },
       state: {
         type: String,
-        default: null
+        default: null,
       },
       state_code: {
         type: String,
-        default: null
+        default: null,
       },
     },
-  
+
     password: {
       type: String,
     },
     status: {
       type: String,
     },
-    photo:{
-        type: String,
+    photo: {
+      type: String,
     },
-    bio:{
-        type: String,
+    bio: {
+      type: String,
     },
-    category:{
-        type: String,
+    category: {
+      type: String,
     },
-    uri:{
-        type: String,
+    website: {
+      type: String,
     },
-    followers:{
-        type: Number,
-    },
-    following:{
-        type: Number,
-    },
-    posts:{
-        type: Number,
-    }
   },
   {
     timestamps: true,
     versionKey: false,
-  });
+  }
+);
 
 UserSchema.statics.encryptPassword = async (password) => {
-    return await bcrypt.hash(password, 10);
-  };
-  
-  UserSchema.statics.comparePassword = async (password, receivedPassword) => {
-    return await bcrypt.compare(password, receivedPassword);
-  };
-  
-  module.exports = mongoose.model("User", UserSchema);
+  return await bcrypt.hash(password, 10);
+};
+
+UserSchema.statics.comparePassword = async (password, receivedPassword) => {
+  return await bcrypt.compare(password, receivedPassword);
+};
+
+module.exports = mongoose.model("User", UserSchema);
