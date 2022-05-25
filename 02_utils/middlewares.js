@@ -24,7 +24,7 @@ exports.validateUserEmail = (req, res, next) => {
   next();
 };
 
-// create a middleware to upload images
+// Check if image is compatible to upload
 exports.checkImage = (req, res, next) => {
   const { image } = req.files;
   if (image) {
@@ -45,7 +45,7 @@ exports.checkImage = (req, res, next) => {
   }
 };
 
-// upload image from req.image with express-fileupload the send image url through req.imageUrl
+// upload image from req.image with express-fileupload then send image url through req.imageUrl
 exports.uploadImage = async (req, res, next) => {
   const { image } = req;
 
