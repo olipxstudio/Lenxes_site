@@ -26,12 +26,10 @@ exports.updateUserSecurity = async (req, res) => {
 // @desc: upload user profile picture || @route: PATCH /api/users/patch/uploadProfilePicture  || @access:public
 exports.uploadUserProfilePicture = async (req, res) => {
   const { _id } = req.user;
-  const { small, medium, large } = req.imageUrl;
+  const { imageUrl } = req;
   try {
     const user = await User.findById(_id);
-    user.photo.small = small;
-    user.photo.medium = medium;
-    user.photo.large = large;
+    user.photo = imageUrl;
     const updatedUser = await user.save();
 
     res.status(200).json({
@@ -46,7 +44,7 @@ exports.uploadUserProfilePicture = async (req, res) => {
 };
 
 // update user bio, category, and website
-// @desc: update user bio, category, and website || @route: PATCH /api/users/patch/updateUserProfile  || @access:public
+// @desc: update user bio, category, and website || @route: PATCH /api/users/patch/uploadProfilePicture  || @access:public
 exports.updateUserProfile = async (req, res) => {
   const { _id } = req.user;
   const { bio, category, website } = req.body;

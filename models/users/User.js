@@ -79,15 +79,7 @@ const UserSchema = new mongoose.Schema(
       type: String,
     },
     photo: {
-      small: {
         type: String,
-      },
-      medium: {
-        type: String,
-      },
-      large: {
-        type: String,
-      },
     },
     bio: {
       type: String,

@@ -64,13 +64,11 @@ exports.uploadImage = async (req, res, next) => {
   const imagePathMedium = path.join(imagePath, "medium/");
   const imagePathLarge = path.join(imagePath, "large/");
 
-  const imagePathSmallName = `${imageName}_small${extension}`;
-  const imagePathMediumName = `${imageName}_medium${extension}`;
-  const imagePathLargeName = `${imageName}_large${extension}`;
-
-  const imagePathSmallUrl = `/files/images/small/${imagePathSmallName}`;
-  const imagePathMediumUrl = `/files/images/medium/${imagePathMediumName}`;
-  const imagePathLargeUrl = `/files/images/large/${imagePathLargeName}`;
+  const imagePathSmallName = `${imageName}${extension}`;
+  const imagePathMediumName = `${imageName}${extension}`;
+  const imagePathLargeName = `${imageName}${extension}`;
+    
+  const imagePathLargeUrl = imagePathLargeName;
 
   const imagePathSmallPath = path.join(imagePathSmall, imagePathSmallName);
   const imagePathMediumPath = path.join(imagePathMedium, imagePathMediumName);
@@ -109,11 +107,7 @@ exports.uploadImage = async (req, res, next) => {
     imageMedium.write(imagePathMediumPath);
     imageLarge.write(imagePathLargePath);
 
-    req.imageUrl = {
-      small: imagePathSmallUrl,
-      medium: imagePathMediumUrl,
-      large: imagePathLargeUrl,
-    };
+    req.imageUrl = imagePathLargeUrl;
     next();
   });
 };
