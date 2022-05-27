@@ -56,22 +56,3 @@ exports.getProfileDetails = async (req, res) => {
     serverError(res, error);
   }
 };
-
-
-// Login User
-// @desc: login user details || @route: GET /api/users/get/login  || @access:users
-exports.loginUser = async (req, res) => {
-    const { email, password } = req.body;
-    try {
-        
-        const result = await User.find({ email });
-        const pass = await User.comparePassword(password, result.password);
-        // console.log(pass)
-        res.status(200).json({
-            success: true,
-            data: pass
-        });
-    } catch (error) {
-        serverError(res, error);
-    }
-};

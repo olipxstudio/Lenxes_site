@@ -6,9 +6,18 @@ const {
   uploadUserProfilePicture,
 } = require("../../controllers/users/patchControllers");
 const { validateUserToken } = require("../../02_utils/common");
-const { uploadImage, checkImage } = require("../../02_utils/middlewares");
+const {
+  uploadImage,
+  checkImage,
+  checkIfUsernameIsTaken,
+} = require("../../02_utils/middlewares");
 
-router.patch("/updateSecurity", validateUserToken, updateUserSecurity);
+router.patch(
+  "/updateSecurity",
+  validateUserToken,
+  checkIfUsernameIsTaken,
+  updateUserSecurity
+);
 router.patch(
   "/uploadProfilePicture",
   validateUserToken,

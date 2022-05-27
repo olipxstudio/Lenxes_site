@@ -66,3 +66,46 @@ exports.createNewUser = async (req, res) => {
     useValidationError(res, error);
   }
 };
+
+// login user and send token
+// @desc: login user and send token || @route: POST /api/users/post/user/login  || @access:public
+exports.loginUser = async (req, res) => {
+  const { password } = req.body;
+  const user_datas = req.user;
+
+  try {
+    const passwordIsCorrect = await User.comparePassword(
+      user_datas.password, // user password
+      password // password from user
+    );
+
+    if (!passwordIsCorrect) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials",
+      });
+    }
+
+    // create token to sign in user after login
+    const token = createToken({ _id: user_datas._id });
+
+    return res.status(200).json({
+      success: true,
+      token: token,
+      message: "Login successful",
+      data: {
+        _id: user_datas._id,
+        fullname: user_datas.fullname,
+        email: user_datas.email,
+        phone: user_datas.phone,
+        profession: user_datas.profession,
+        followers: user_datas.followers,
+        following: user_datas.following,
+        posts: user_datas.posts,
+        status: user_datas.status,
+      },
+    });
+  } catch (error) {
+    return clientError(res, error);
+  }
+};

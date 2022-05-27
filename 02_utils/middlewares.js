@@ -165,3 +165,35 @@ exports.uploadVideo = async (req, res, next) => {
     // next();
   });
 };
+
+// check if username or email is in req.body.email
+exports.checkIfIsUser = async (req, res, next) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({
+      $and: [{ $or: [{ email: email }, { username: email }] }],
+    });
+
+    if (!user)
+      return clientError(
+        res,
+        (message = "Incorrect email address or username")
+      );
+    req.user = user;
+    next();
+  } catch (error) {
+    return clientError(res, error);
+  }
+};
+
+// check if username is taken
+exports.checkIfUsernameIsTaken = async (req, res, next) => {
+  const { username } = req.body;
+  try {
+    const user = await User.findOne({ username: username });
+    if (user) return clientError(res, "This Username is taken!");
+    next();
+  } catch (error) {
+    return clientError(res, error);
+  }
+};
