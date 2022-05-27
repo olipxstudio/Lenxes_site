@@ -38,13 +38,33 @@ exports.checkImage = async (req, res, next) => {
     }
 
     if (image.size > process.env.MAX_FILE_UPLOAD) {
-      return clientError(res, "Please upload an image less than 1mb");
+      return clientError(res, "Please upload an image less than 5mb");
     }
 
     req.image = image;
     next();
   } else {
     return clientError(res, "Please upload an image");
+  }
+};
+
+// check video format and pass video url through req.videoUrl
+exports.checkVideo = async (req, res, next) => {
+  const { video } = req.files;
+  if (video) {
+    req.video = video;
+    if (!video.mimetype.startsWith("video")) {
+      return clientError(res, "Please upload a valid video");
+    }
+
+    if (video.size > process.env.MAX_FILE_UPLOAD) {
+      return clientError(res, "Please upload a video less than 10mb");
+    }
+
+    req.video = video;
+    next();
+  } else {
+    return clientError(res, "Please upload a video");
   }
 };
 
@@ -67,7 +87,7 @@ exports.uploadImage = async (req, res, next) => {
   const imagePathSmallName = `${imageName}${extension}`;
   const imagePathMediumName = `${imageName}${extension}`;
   const imagePathLargeName = `${imageName}${extension}`;
-    
+
   const imagePathLargeUrl = imagePathLargeName;
 
   const imagePathSmallPath = path.join(imagePathSmall, imagePathSmallName);
@@ -109,5 +129,39 @@ exports.uploadImage = async (req, res, next) => {
 
     req.imageUrl = imagePathLargeUrl;
     next();
+  });
+};
+
+// upload video from req.video to video folder and send video url through req.videoUrl
+exports.uploadVideo = async (req, res, next) => {
+  const { video } = req;
+
+  const fileName = video.name;
+  const extension = path.extname(fileName);
+  const md5 = video.md5;
+
+  // resize image to three different sizes
+  const videoName = `video${md5}${extension}`;
+  const videoPath = path.join(__dirname, "../public/uploads/videos/");
+
+  const videoPathName = `${videoName}`;
+  const videoPathUrl = videoPathName;
+
+  path.join(videoPath, videoPathName);
+
+  // create folder if not exists
+  if (!fs.existsSync(videoPath)) {
+    fs.mkdirSync(videoPath);
+  }
+
+  // save video to disk
+  video.mv(videoPath + videoName, async (err) => {
+    if (err) {
+      return serverError(res, err);
+    }
+
+    req.videoUrl = videoPathUrl;
+    console.log(req.videoUrl);
+    // next();
   });
 };
