@@ -75,15 +75,12 @@ exports.loginUser = async (req, res) => {
 
   try {
     const passwordIsCorrect = await User.comparePassword(
-      user_datas.password, // user password
-      password // password from user
+      password, // password from user
+      user_datas.password // user password
     );
 
     if (!passwordIsCorrect) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid credentials",
-      });
+      return clientError(res, "Invalid password");
     }
 
     // create token to sign in user after login
@@ -104,6 +101,25 @@ exports.loginUser = async (req, res) => {
         posts: user_datas.posts,
         status: user_datas.status,
       },
+    });
+  } catch (error) {
+    return clientError(res, error);
+  }
+};
+
+// forgot password request
+// @desc: forgot password request || @route: POST /api/users/post/user/forgot-password  || @access:public
+exports.forgotPassword = async (req, res) => {
+  try {
+    // create token to reset password
+    const token = createToken({ _id: req.user._id });
+
+    // send email to user
+    // sendEmail(user.email, token);
+
+    return res.status(200).json({
+      success: true,
+      message: "Email sent successfully",
     });
   } catch (error) {
     return clientError(res, error);

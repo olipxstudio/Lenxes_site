@@ -64,3 +64,22 @@ exports.updateUserProfile = async (req, res) => {
     serverError(res, error);
   }
 };
+
+// update user password
+// @desc: update user password || @route: PATCH /api/users/patch/updatePassword  || @access:public
+exports.updateUserPassword = async (req, res) => {
+  const { _id } = req.user;
+  const { newPassword } = req.body;
+  try {
+    const user = await User.findById(_id);
+    user.password = await User.encryptPassword(newPassword);
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "User password updated successfully",
+    });
+  } catch (error) {
+    serverError(res, error);
+  }
+};

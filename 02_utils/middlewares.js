@@ -14,6 +14,17 @@ exports.checkIfUserAlreadyExist = async (req, res, next) => {
   next();
 };
 
+// verify email
+exports.verifyEmail = async (req, res, next) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) {
+    return clientError(res, "Email does not exist");
+  }
+  req.user = user;
+  next();
+};
+
 // validate user email
 exports.validateUserEmail = (req, res, next) => {
   const { email } = req.body;
@@ -192,6 +203,24 @@ exports.checkIfUsernameIsTaken = async (req, res, next) => {
   try {
     const user = await User.findOne({ username: username });
     if (user) return clientError(res, "This Username is taken!");
+    next();
+  } catch (error) {
+    return clientError(res, error);
+  }
+};
+
+// check if user password is correct
+exports.checkIfPasswordIsCorrect = async (req, res, next) => {
+  const { password } = req.body;
+  const { _id } = req.user;
+  const user = await User.findById(_id);
+  try {
+    const isPasswordCorrect = await User.comparePassword(
+      password, // password from user
+      user.password // user password
+    );
+    if (!isPasswordCorrect)
+      return clientError(res, "Incorrect password, please try again");
     next();
   } catch (error) {
     return clientError(res, error);

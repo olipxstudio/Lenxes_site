@@ -17,20 +17,71 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-// Get people suggested to follow base on your category and top follower // Base on Top followers not done yet
-// @desc: get suggested followers || @route: GET /api/users/get/suggestedToFollow  || @access:users
-exports.getSuggestedFollowers = async (req, res) => {
+// get 15 users that are not _id from users where user.proffesion = user.proffesion  with highest followers and pass result to req.followerSuggestions
+// @desc: get 30 users from users where user.proffesion = user.proffesion with highest followers || @route: GET /api/users/get/suggestedToFollow  || @access:users
+exports.getSuggestedToFollow = async (req, res, next) => {
+  const { _id } = req.user;
+  const user = await User.findById(_id);
+  try {
+    // filter with $and
+    const result = await User.find(
+      {
+        $and: [
+          { _id: { $ne: _id }, status: "Active" },
+          { profession: user.profession },
+        ],
+      },
+      {
+        username: 1,
+        fullname: 1,
+        profession: 1,
+        photo: 1,
+        followers: 1,
+      }
+    )
+      .sort({ followers: -1 })
+      .limit(15);
+    req.followerSuggestions = result;
+    next();
+  } catch (error) {
+    serverError(res, error);
+  }
+};
+
+// get 15 random users from users with higest followers and combine result with req.followerSuggestions
+// @desc: get 15 random users from users with higest followers || @route: GET /api/users/get/suggestedToFollow  || @access:users
+exports.getRandomUsers = async (req, res) => {
   const { _id } = req.user;
   try {
-    const data = await User.findById({ _id });
-    const result = await User.find({ category: data.category });
+    // dont include current user and sort by highest followers  photo: 1 }
+
+    const result = await User.find(
+      {
+        $and: [{ _id: { $ne: _id }, status: "Active" }],
+      },
+      // project only the fields that we need
+      {
+        username: 1,
+        fullname: 1,
+        profession: 1,
+        photo: 1,
+        followers: 1,
+      }
+    )
+      .sort({ followers: -1 })
+      .limit(15);
+    // combine result with req.followerSuggestions
+    const combinedResult = [...req.followerSuggestions, ...result];
+
     res.status(200).json({
       success: true,
-      count: result?.length,
-      data: result,
+      message: "",
+      count: combinedResult.length,
+      data: combinedResult,
     });
   } catch (error) {
     serverError(res, error);
+    console.log(error);
   }
 };
 
@@ -39,7 +90,7 @@ exports.getSuggestedFollowers = async (req, res) => {
 exports.getProfileDetails = async (req, res) => {
   const { _id } = req.user;
   try {
-    const data = await User.findById({ _id });
+    const data = await User.findById(_id);
     res.status(200).json({
       success: true,
       username: data.username,

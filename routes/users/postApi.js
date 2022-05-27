@@ -4,6 +4,7 @@ const router = express.Router();
 const {
   createNewUser,
   loginUser,
+  forgotPassword,
 } = require("../../controllers/users/postController");
 const {
   validateUserEmail,
@@ -11,8 +12,8 @@ const {
   checkVideo,
   uploadVideo,
   checkIfIsUser,
+  verifyEmail,
 } = require("../../02_utils/middlewares");
-const { createUsersTable } = require("../../schemas/users");
 
 router.post(
   "/user/new",
@@ -26,4 +27,6 @@ router.post("/uploadVideo", checkVideo, uploadVideo);
 // login user
 router.post("/login", checkIfIsUser, loginUser);
 
+// reset password request
+router.post("/forgotPassword", verifyEmail, forgotPassword);
 module.exports = router;
