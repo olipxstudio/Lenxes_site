@@ -1,4 +1,5 @@
 const User = require("../../models/users/User");
+const Post = require("../../models/users/Post");
 const {
   generateUniqueUserId,
   clientError,
@@ -125,3 +126,75 @@ exports.forgotPassword = async (req, res) => {
     return clientError(res, error);
   }
 };
+
+// Add new Post Media Photo
+// @desc: Add new Post Photo || @route: POST /api/users/post/addPostPhoto  || @access:public
+exports.AddNewPostPhoto = async (req, res) => {
+    const {identifier, post_from} = req.body;
+    const photo = req.imageUrl;
+    const {_id} = req.user;
+    try {
+        const post = new Post({
+            user: _id,
+            post: photo,
+            posted_from: post_from,
+            post_type: 'photo',
+            identifier: identifier,
+            status: 'pending'
+        });
+        await post.save();
+        res.status(200).json({
+            success: true,
+            message: "Photo Saved Successfully"
+        })
+    } catch (error) {
+        return clientError(res, error);
+    }
+}
+// Add new Post Media Video
+// @desc: Add new Post Video || @route: POST /api/users/post/addPostVideo  || @access:public
+exports.AddNewPostVideo = async (req, res) => {
+    const {identifier, post_from} = req.body;
+    const video = req.imageUrl;
+    const {_id} = req.user;
+    try {
+        const post = new Post({
+            user: _id,
+            post: video,
+            posted_from: post_from,
+            post_type: 'video',
+            identifier: identifier,
+            status: 'pending'
+        });
+        await post.save();
+        res.status(200).json({
+            success: true,
+            message: "Photo Saved Successfully"
+        })
+    } catch (error) {
+        return clientError(res, error);
+    }
+}
+// Add new Post
+// @desc: Add new Post || @route: POST /api/users/post/addPost  || @access:public
+exports.AddNewPost = async (req, res) => {
+    const {identifier, post_from, tag_product, linking, caption, location, comment_permission, post_type} = req.body;
+    const {_id} = req.user;
+    try {
+        const getPost = await Post.findOne(identifier);
+        if(getPost.length > 0){
+            return res.status(200).json({
+                success: true,
+                count: getPost.length,
+                data: getPost
+            })
+        }else{
+            return res.status(200).json({
+                success: false,
+                count: getPost.length
+            })
+        }
+    } catch (error) {
+        return clientError(res, error);
+    }
+}
