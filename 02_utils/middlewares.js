@@ -14,6 +14,18 @@ exports.checkIfUserAlreadyExist = async (req, res, next) => {
   next();
 };
 
+const currentDateTime = async (req, res) => {
+    let date_ob = new Date();
+    let date = ("0" + date_ob.getDate()).slice(-2);
+    let month = ("0" + (date_ob.getMonth() + 1)).slice(-2);
+    let year = date_ob.getFullYear();
+    let hours = date_ob.getHours();
+    // let minutes = date_ob.getMinutes();
+    // let seconds = date_ob.getSeconds();
+    let fullTime = '_' + year + month + date + hours;
+    return fullTime;
+}
+
 // verify email
 exports.verifyEmail = async (req, res, next) => {
   const { email } = req.body;
@@ -42,15 +54,15 @@ exports.validateUserEmail = (req, res, next) => {
 exports.checkImage = async (req, res, next) => {
   const { image } = req.files;
   if (image) {
-    req.image = image;
+    // req.image = image;
 
     if (!image.mimetype.startsWith("image")) {
       return clientError(res, "Please upload a valid image");
     }
 
-    if (image.size > process.env.MAX_FILE_UPLOAD) {
-      return clientError(res, "Please upload an image less than 5mb");
-    }
+    // if (image.size > process.env.MAX_FILE_UPLOAD) {
+    //   return clientError(res, "Please upload an image less than 5mb");
+    // }
 
     req.image = image;
     next();
@@ -63,7 +75,7 @@ exports.checkImage = async (req, res, next) => {
 exports.checkVideo = async (req, res, next) => {
   const { video } = req.files;
   if (video) {
-    req.video = video;
+    // req.video = video;
     if (!video.mimetype.startsWith("video")) {
       return clientError(res, "Please upload a valid video");
     }
@@ -86,9 +98,10 @@ exports.uploadImage = async (req, res, next) => {
   const fileName = image.name;
   const extension = path.extname(fileName);
   const md5 = image.md5;
-
+  const newLocal = await currentDateTime();
+  
   // resize image to three different sizes
-  const imageName = `image${md5}`;
+  const imageName = `image${md5}${newLocal}`;
   const imagePath = path.join(__dirname, "../public/uploads/");
 
   const imagePathSmall = path.join(imagePath, "small/");
@@ -120,7 +133,7 @@ exports.uploadImage = async (req, res, next) => {
   }
 
   // save image to disk
-  image.mv(imagePath + imageName, async (err) => {
+  image.mv(imagePath + '/images' + imageName, async (err) => {
     if (err) {
       return serverError(res, err);
     }
@@ -131,8 +144,8 @@ exports.uploadImage = async (req, res, next) => {
     const imageLarge = await jimp.read(imagePath + imageName);
 
     imageSmall.resize(200, jimp.AUTO);
-    imageMedium.resize(400, jimp.AUTO);
-    imageLarge.resize(800, jimp.AUTO);
+    imageMedium.resize(600, jimp.AUTO);
+    imageLarge.resize(1080, jimp.AUTO);
 
     imageSmall.write(imagePathSmallPath);
     imageMedium.write(imagePathMediumPath);
@@ -150,11 +163,12 @@ exports.uploadVideo = async (req, res, next) => {
   const fileName = video.name;
   const extension = path.extname(fileName);
   const md5 = video.md5;
-
+  const newLocal = await currentDateTime();
+  
   // resize image to three different sizes
-  const videoName = `video${md5}${extension}`;
+  const videoName = `video${md5}${newLocal}${extension}`;
   const videoPath = path.join(__dirname, "../public/uploads/videos/");
-
+  
   const videoPathName = `${videoName}`;
   const videoPathUrl = videoPathName;
 
