@@ -3,7 +3,11 @@ const User = require("../models/users/User");
 const path = require("path");
 const fs = require("fs");
 const jimp = require("jimp");
-const { log } = require("console");
+
+const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
+const ffmpeg = require("fluent-ffmpeg");
+ffmpeg.setFfmpegPath(ffmpegPath);
+
 // Check if user already exists
 exports.checkIfUserAlreadyExist = async (req, res, next) => {
   const { email } = req.body;
@@ -15,16 +19,16 @@ exports.checkIfUserAlreadyExist = async (req, res, next) => {
 };
 
 const currentDateTime = async (req, res) => {
-    let date_ob = new Date();
-    let date = ("0" + date_ob.getDate()).slice(-2);
-    let month = ("0" + (date_ob.getMonth() + 1)).slice(-2);
-    let year = date_ob.getFullYear();
-    let hours = date_ob.getHours();
-    // let minutes = date_ob.getMinutes();
-    // let seconds = date_ob.getSeconds();
-    let fullTime = '_' + year + month + date + hours;
-    return fullTime;
-}
+  let date_ob = new Date();
+  let date = ("0" + date_ob.getDate()).slice(-2);
+  let month = ("0" + (date_ob.getMonth() + 1)).slice(-2);
+  let year = date_ob.getFullYear();
+  let hours = date_ob.getHours();
+  // let minutes = date_ob.getMinutes();
+  // let seconds = date_ob.getSeconds();
+  let fullTime = "_" + year + month + date + hours;
+  return fullTime;
+};
 
 // verify email
 exports.verifyEmail = async (req, res, next) => {
@@ -99,7 +103,7 @@ exports.uploadImage = async (req, res, next) => {
   const extension = path.extname(fileName);
   const md5 = image.md5;
   const newLocal = await currentDateTime();
-  
+
   // resize image to three different sizes
   const imageName = `image${md5}${newLocal}`;
   const imagePath = path.join(__dirname, "../public/uploads/");
@@ -133,7 +137,7 @@ exports.uploadImage = async (req, res, next) => {
   }
 
   // save image to disk
-  image.mv(imagePath + '/images' + imageName, async (err) => {
+  image.mv(imagePath + "/images" + imageName, async (err) => {
     if (err) {
       return serverError(res, err);
     }
@@ -164,11 +168,13 @@ exports.uploadVideo = async (req, res, next) => {
   const extension = path.extname(fileName);
   const md5 = video.md5;
   const newLocal = await currentDateTime();
-  
+
+  // get first frame of video and save it as image
+
   // resize image to three different sizes
   const videoName = `video${md5}${newLocal}${extension}`;
   const videoPath = path.join(__dirname, "../public/uploads/videos/");
-  
+
   const videoPathName = `${videoName}`;
   const videoPathUrl = videoPathName;
 
@@ -186,9 +192,31 @@ exports.uploadVideo = async (req, res, next) => {
     }
 
     req.videoUrl = videoPathUrl;
-    console.log(req.videoUrl);
-    // next();
+    next();
   });
+};
+
+// get video thumbnail
+exports.getVideoThumbnail = async (req, res, next) => {
+  const { videoUrl } = req;
+  const thumb_path = path.join(__dirname, "../public/uploads/thumbs/");
+  ffmpeg({ source: `./public/uploads/videos/${videoUrl}` })
+    .on("filename", (filename) => {
+      const thumb_url = filename;
+      req.thumb_url = thumb_url;
+    })
+    .on("end", () => {
+      next();
+    })
+    .on("error", (err) => {
+      console.log("Error", err);
+    })
+    .takeScreenshots({
+      timemarks: [2],
+      count: 1,
+      filename: "thumbnail-%s.png",
+      folder: thumb_path,
+    });
 };
 
 // check if username or email is in req.body.email

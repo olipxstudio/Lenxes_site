@@ -127,74 +127,75 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
-// Add new Post Media Photo
-// @desc: Add new Post Photo || @route: POST /api/users/post/addPostPhoto  || @access:public
-exports.AddNewPostPhoto = async (req, res) => {
-    const {identifier, post_from} = req.body;
-    const photo = req.imageUrl;
-    const {_id} = req.user;
-    try {
-        const post = new Post({
-            user: _id,
-            post: photo,
-            posted_from: post_from,
-            post_type: 'photo',
-            identifier: identifier,
-            status: 'pending'
-        });
-        await post.save();
-        res.status(200).json({
-            success: true,
-            message: "Photo Saved Successfully"
-        })
-    } catch (error) {
-        return clientError(res, error);
-    }
-}
-// Add new Post Media Video
-// @desc: Add new Post Video || @route: POST /api/users/post/addPostVideo  || @access:public
-exports.AddNewPostVideo = async (req, res) => {
-    const {identifier, post_from} = req.body;
-    const video = req.imageUrl;
-    const {_id} = req.user;
-    try {
-        const post = new Post({
-            user: _id,
-            post: video,
-            posted_from: post_from,
-            post_type: 'video',
-            identifier: identifier,
-            status: 'pending'
-        });
-        await post.save();
-        res.status(200).json({
-            success: true,
-            message: "Photo Saved Successfully"
-        })
-    } catch (error) {
-        return clientError(res, error);
-    }
-}
-// Add new Post
-// @desc: Add new Post || @route: POST /api/users/post/addPost  || @access:public
-exports.AddNewPost = async (req, res) => {
-    const {identifier, post_from, tag_product, linking, caption, location, comment_permission, post_type} = req.body;
-    const {_id} = req.user;
-    try {
-        const getPost = await Post.findOne(identifier);
-        if(getPost.length > 0){
-            return res.status(200).json({
-                success: true,
-                count: getPost.length,
-                data: getPost
-            })
-        }else{
-            return res.status(200).json({
-                success: false,
-                count: getPost.length
-            })
-        }
-    } catch (error) {
-        return clientError(res, error);
-    }
-}
+// send video properties to user
+// @desc: send video properties to user || @route: POST /api/users/post/uploadVideo  || @access:public
+exports.sendVideo = async (req, res) => {
+  const video = req.videoUrl;
+  const thumbnail = req.thumb_url;
+
+  return res.status(200).json({
+    success: true,
+    data: {
+      video,
+      thumbnail,
+    },
+  });
+};
+
+// send photo
+// @desc: send photo to user || @route: POST /api/users/post/uploadPhoto  || @access:public
+exports.sendPhoto = async (req, res) => {
+  const photo = req.imageUrl;
+
+  return res.status(200).json({
+    success: true,
+    data: {
+      photo,
+    },
+  });
+};
+
+// create new post
+// @desc: create new post || @route: POST /api/users/post/createPost  || @access:public
+exports.createPost = async (req, res) => {
+  const {
+    media,
+    thumbnail,
+    tags,
+    post_from,
+    caption,
+    location,
+    permission,
+    post_type,
+  } = req.body;
+
+  const { _id } = req.user;
+  try {
+    const post = new Post({
+      user: _id,
+      // post: media,
+      post_meta: {
+        image: post_type === "photo" ? media : null,
+        video: post_type === "video" ? media : null,
+        thumbnail: post_type === "video" ? thumbnail : null,
+        text: post_type === "text" ? media : null,
+      },
+      // tag product
+      tag_product: tags,
+      post_from: post_from,
+      caption: caption,
+      location: location,
+      comment_permission: permission,
+      post_type: post_type,
+      status: "Published",
+    });
+    await post.save();
+    res.status(200).json({
+      success: true,
+      message: "Post created successfully",
+      data: post,
+    });
+  } catch (error) {
+    return clientError(res, error);
+  }
+};

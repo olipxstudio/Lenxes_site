@@ -5,9 +5,9 @@ const {
   createNewUser,
   loginUser,
   forgotPassword,
-  AddNewPostPhoto,
-  AddNewPostVideo,
-  AddNewPost
+  sendPhoto,
+  sendVideo,
+  createPost,
 } = require("../../controllers/users/postController");
 
 const {
@@ -19,6 +19,7 @@ const {
   verifyEmail,
   uploadImage,
   checkImage,
+  getVideoThumbnail,
 } = require("../../02_utils/middlewares");
 
 const { validateUserToken } = require("../../02_utils/common");
@@ -29,16 +30,31 @@ router.post(
   createNewUser
 );
 
-// route to uploade video
-router.post("/uploadVideo", checkVideo, uploadVideo);
 // login user
 router.post("/login", checkIfIsUser, loginUser);
 
 // reset password request
 router.post("/forgotPassword", verifyEmail, forgotPassword);
 
-router.post('/addPostPhoto', validateUserToken, checkImage, uploadImage, AddNewPostPhoto);
-router.post('/addPostVideo', validateUserToken, AddNewPostVideo);
-router.post('/addPost', validateUserToken, AddNewPost);
+// upload photo
+router.post(
+  "/uploadPhoto",
+  validateUserToken,
+  checkImage,
+  uploadImage,
+  sendPhoto
+);
+// upload video
+router.post(
+  "/uploadVideo",
+  validateUserToken,
+  checkVideo,
+  uploadVideo,
+  getVideoThumbnail,
+  sendVideo
+);
+
+// create new post
+router.post("/new-post", validateUserToken, createPost);
 
 module.exports = router;
