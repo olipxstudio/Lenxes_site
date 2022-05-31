@@ -6,6 +6,7 @@ const {
   getProfileDetails,
   getSuggestedToFollow,
   getRandomUsers,
+  getPosts,
 } = require("../../controllers/users/getContollers");
 const { validateUserToken } = require("../../02_utils/common");
 
@@ -21,5 +22,8 @@ router.get(
 
 // Get user profile details
 router.get("/userProfileDetails", validateUserToken, getProfileDetails);
+
+// get post
+router.get("/posts", validateUserToken, getPosts);
 
 module.exports = router;

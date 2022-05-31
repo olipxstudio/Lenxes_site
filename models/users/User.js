@@ -79,13 +79,17 @@ const UserSchema = new mongoose.Schema(
       type: String,
     },
     photo: {
-        type: String,
+      type: String,
     },
     bio: {
       type: String,
     },
     category: {
       type: String,
+    },
+    posts: {
+      type: Number,
+      default: 0,
     },
     website: {
       type: String,

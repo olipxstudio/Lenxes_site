@@ -1,5 +1,6 @@
 const User = require("../../models/users/User");
 const { clientError, serverError } = require("../../02_utils/common");
+const Post = require("../../models/users/Post");
 
 // get all users
 // @desc: get all users from users || @route: GET /api/users/get/allUsers  || @access:admin
@@ -102,6 +103,22 @@ exports.getProfileDetails = async (req, res) => {
       followers: data.followers,
       following: data.following,
       posts: data.posts,
+    });
+  } catch (error) {
+    serverError(res, error);
+  }
+};
+
+// get posts of user
+// @desc: get posts of user || @route: GET /api/users/get/posts  || @access:users
+exports.getPosts = async (req, res) => {
+  const { _id } = req.user;
+  try {
+    const data = await Post.find({ user: _id });
+    res.status(200).json({
+      success: true,
+      data,
+      count: data.length,
     });
   } catch (error) {
     serverError(res, error);

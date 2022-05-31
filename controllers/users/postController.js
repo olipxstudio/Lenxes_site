@@ -190,10 +190,21 @@ exports.createPost = async (req, res) => {
       status: "Published",
     });
     await post.save();
+    // inrement post count
+    await User.findByIdAndUpdate(
+      { _id },
+      { $inc: { posts: 1 } },
+      { new: true }
+    );
+
+    // get post count from User
+    const user = await User.findById({ _id });
+
     res.status(200).json({
       success: true,
       message: "Post created successfully",
       data: post,
+      count: user.posts,
     });
   } catch (error) {
     return clientError(res, error);
