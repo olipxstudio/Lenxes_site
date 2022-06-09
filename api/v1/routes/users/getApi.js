@@ -7,6 +7,7 @@ const {
   getSuggestedToFollow,
   getRandomUsers,
   getPosts,
+  getNiches,
 } = require("../../controllers/users/getContollers");
 const { validateUserToken } = require("../../02_utils/common");
 
@@ -25,5 +26,8 @@ router.get("/userProfileDetails", validateUserToken, getProfileDetails);
 
 // get post
 router.get("/posts", validateUserToken, getPosts);
+
+// get niches
+router.get("/niches/:number", validateUserToken, getNiches);
 
 module.exports = router;

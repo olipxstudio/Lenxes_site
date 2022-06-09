@@ -9,7 +9,10 @@ const {
   sendVideo,
   createPost,
   RegisterLikes,
-  Notifications
+  Notifications,
+  Saved,
+  NewNiche,
+  AddMembertoNiche
 } = require("../../controllers/users/postController");
 
 const {
@@ -61,6 +64,15 @@ router.post("/new-post", validateUserToken, createPost);
 
 // save likes for posts and products
 router.post("/like", validateUserToken, RegisterLikes, Notifications)
+
+// save post to user saved
+router.post("/saved", validateUserToken, Saved)
+
+// create new niche
+router.post("/createNiche", validateUserToken, NewNiche)
+
+// add memeber to niche
+router.post("/addNicheMember", validateUserToken, AddMembertoNiche, Notifications)
 
 
 module.exports = router;
