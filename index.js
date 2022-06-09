@@ -2,7 +2,7 @@ require("dotenv").config({ path: "./01_config/_config.env" });
 
 const express = require("express");
 const cors = require("cors");
-const { clientError } = require("./02_utils/common");
+const { clientError } = require("./api/v1/02_utils/common");
 const connectDB = require("./01_config/db");
 const app = express();
 const fileUpload = require("express-fileupload");
@@ -27,9 +27,9 @@ app.use(
 );
 app.use("/files", express.static(path.join(__dirname, "public/uploads")));
 
-app.use("/api/users/post", require("./routes/users/postApi"));
-app.use("/api/users/patch", require("./routes/users/patchApi"));
-app.use("/api/users/get", require("./routes/users/getApi"));
+app.use("/api/users/post", require("./api/v1/routes/users/postApi"));
+app.use("/api/users/patch", require("./api/v1/routes/users/patchApi"));
+app.use("/api/users/get", require("./api/v1/routes/users/getApi"));
 
 app.use("*", (req, res) => {
   clientError(res, "Page not found");
