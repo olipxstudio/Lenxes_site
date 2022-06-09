@@ -8,6 +8,7 @@ const {
   getRandomUsers,
   getPosts,
   getNiches,
+  getSingleNiches,
 } = require("../../controllers/users/getContollers");
 const { validateUserToken } = require("../../02_utils/common");
 
@@ -29,5 +30,8 @@ router.get("/posts", validateUserToken, getPosts);
 
 // get niches
 router.get("/niches/:number", validateUserToken, getNiches);
+
+// get single niches by id
+router.get("/singleNiche", validateUserToken, getSingleNiches);
 
 module.exports = router;

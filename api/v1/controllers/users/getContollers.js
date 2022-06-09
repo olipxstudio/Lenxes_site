@@ -156,5 +156,18 @@ exports.getNiches = async (req, res) => {
     } catch (error) {
         serverError(res, error);
     }
-  };
-  
+};
+
+
+
+// get single niches
+// @desc: get single niches || @route: GET /api/users/get/singleNiche  || @access:users
+exports.getSingleNiches = async (req, res) => {
+    const { _id } = req.user;
+    const {niche_id} = req.body
+    try {
+        
+    } catch (error) {
+        serverError(res, error);
+    }
+};
