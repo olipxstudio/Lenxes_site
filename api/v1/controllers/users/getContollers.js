@@ -3,6 +3,7 @@ const { clientError, serverError } = require("../../02_utils/common");
 const Post = require("../../models/users/Post");
 const Niche = require("../../models/users/Niche");
 const Nichemember = require("../../models/users/Nichemember");
+const Nichequestion = require("../../models/users/Nichequestion");
 
 // get all users
 // @desc: get all users from users || @route: GET /api/users/get/allUsers  || @access:admin
@@ -129,7 +130,7 @@ exports.getPosts = async (req, res) => {
 
 
 // get niches
-// @desc: get niches || @route: GET /api/users/get/niches/:number  || @access:users
+// @desc: get niches || @route: GET /api/users/get/niches/number - 10 per time || @access:users
 exports.getNiches = async (req, res) => {
     const { _id } = req.user;
     const number = req.params.number;
@@ -159,14 +160,62 @@ exports.getNiches = async (req, res) => {
 };
 
 
-
 // get single niches
 // @desc: get single niches || @route: GET /api/users/get/singleNiche  || @access:users
 exports.getSingleNiches = async (req, res) => {
     const { _id } = req.user;
     const {niche_id} = req.body
     try {
-        
+        const result = await Niche.findOne({_id: niche_id}).populate("creator","fullname username photo")
+        const members = await Nichemember.find(
+            {
+                $and:[
+                    {niche: result._id},
+                    {status: 'active'}
+                ]
+            }
+        ).limit(5)
+        res.status(200).json({
+            success: true,
+            result,
+            members
+        });
+    } catch (error) {
+        serverError(res, error);
+    }
+};
+
+
+// get single niches members
+// @desc: get single niches members || @route: GET /api/users/get/singleNicheMembers/number - 20 per time  || @access:users
+exports.getSingleNichesMembers = async (req, res) => {
+    const { _id } = req.user;
+    const {niche_id} = req.body
+    const number = req.params.number;
+    try {
+        const data = await Nichemember.find({$and:[{niche:niche_id},{status:'active'}]}).limit(20).skip(number).populate("member","fullname username photo");
+        res.status(200).json({
+            success: true,
+            data
+        });
+    } catch (error) {
+        serverError(res, error);
+    }
+};
+
+
+// get single niches questions
+// @desc: get single niches questions || @route: GET /api/users/get/singleNicheQuestions/number - 10 per time  || @access:users
+exports.getSingleNichesQuestions = async (req, res) => {
+    const { _id } = req.user;
+    const {niche_id} = req.body
+    const number = req.params.number;
+    try {
+        const data = await Nichequestion.find({$and:[{niche:niche_id},{status:'active'}]}).sort("-createdAt").limit(10).skip(number).populate("user","fullname username photo");
+        res.status(200).json({
+            success: true,
+            data
+        });
     } catch (error) {
         serverError(res, error);
     }

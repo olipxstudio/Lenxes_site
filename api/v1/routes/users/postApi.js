@@ -12,7 +12,10 @@ const {
   Notifications,
   Saved,
   NewNiche,
-  AddMembertoNiche
+  AddMembertoNiche,
+  followUnfollowNiche,
+  nicheQuestion,
+  likeUnlikeNicheQuestion
 } = require("../../controllers/users/postController");
 
 const {
@@ -73,6 +76,15 @@ router.post("/createNiche", validateUserToken, NewNiche)
 
 // add memeber to niche
 router.post("/addNicheMember", validateUserToken, AddMembertoNiche, Notifications)
+
+// follow and unfollow a niche
+router.post("/followUnfollowNiche", validateUserToken, followUnfollowNiche)
+
+// ask niche question
+router.post("/nicheQuestion", validateUserToken, nicheQuestion)
+
+// like and unlike niche question
+router.post("/likeUnlikeNicheQuestion", validateUserToken, likeUnlikeNicheQuestion, Notifications)
 
 
 module.exports = router;

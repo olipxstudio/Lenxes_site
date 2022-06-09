@@ -5,6 +5,9 @@ const Notification = require("../../models/users/Notification");
 const Saved = require("../../models/users/Saved");
 const Niche = require("../../models/users/Niche");
 const Nichemember = require("../../models/users/Nichemember");
+const Nichefollow = require("../../models/users/Nichefollow");
+const Nichequestion = require("../../models/users/Nichequestion");
+
 const {
   generateUniqueUserId,
   clientError,
@@ -387,6 +390,10 @@ exports.AddMembertoNiche = async (req, res, next) => {
         if (check.length>0) {
             // If member is found
             const result = await Nichemember.deleteOne({check})
+            await Niche.findOneAndUpdate(
+                {_id: niche_id},
+                {$inc:{members_count: -1}}
+            )
             res.status(200).json({
                 success: true,
                 message:"Member removed successfully",
@@ -401,7 +408,11 @@ exports.AddMembertoNiche = async (req, res, next) => {
                         {status: 'pending'}
                     ]
                 },
-                {$set:{status: 'active'}, $inc:{members_count: 1}}
+                {$set:{status: 'active'}}
+            )
+            await Niche.findOneAndUpdate(
+                {_id: niche_id},
+                {$inc:{members_count: 1}}
             )
             // If not member before
             const result = new Nichemember({
@@ -419,6 +430,134 @@ exports.AddMembertoNiche = async (req, res, next) => {
             req.purpose = 'membertoniche'
             req.init_on = 'account'
             req.identity = member_id
+            next()
+        }
+    } catch (error) {
+        clientError(res, error)
+    }
+}
+
+
+
+// follow and unfollow niche
+// @desc: follow and unfollow niche || @route: POST /api/users/post/followUnfollowNiche  || @access:public
+exports.followUnfollowNiche = async (req, res) => {
+    const {_id} = req.user
+    const {niche_id} = req.body
+    try {
+        const check = await Nichefollow.find(
+            {
+                $and:[
+                    {user: _id},
+                    {follow: niche_id}
+                ]
+            },
+            "_id"
+        )
+        // return console.log(check)
+        if(check.length>0){
+            // If I already follow this Niche
+            const result = await Nichefollow.deleteOne({check})
+            res.status(200).json({
+                success: true,
+                message:"Unfollowed Niche successfully",
+                data: result,
+            })
+        }else{
+            // If not following Niche before
+            const result = new Nichefollow({
+                user: _id,
+                follow: niche_id
+            })
+            await result.save()
+            res.status(200).json({
+                success: true,
+                message:"Followed Niche successfully",
+                data: result,
+            })
+        }
+    } catch (error) {
+        clientError(res, error)
+    }
+}
+
+
+// ask niche question
+// @desc: ask niche question || @route: POST /api/users/post/nicheQuestion  || @access:public
+exports.nicheQuestion = async (req, res) => {
+    const {_id} = req.user
+    const {niche_id, question, photo} = req.body
+    try {
+        const result = new Nichequestion({
+            question,
+            photo,
+            niche: niche_id,
+            user: _id
+        })
+        await result.save()
+        res.status(200).json({
+            success: true,
+            message:"Question asked successfully",
+            data: result,
+        })
+    } catch (error) {
+        clientError(res, error)
+    }
+}
+
+
+
+// like and unlike niche question
+// @desc: like and unlike niche question || @route: POST /api/users/post/likeUnlikeNicheQuestion  || @access:public
+exports.likeUnlikeNicheQuestion = async (req, res, next) => {
+    const {_id} = req.user
+    const {question_id} = req.body
+    try {
+        const question_data = await Nichequestion.findOne({_id: question_id})
+        const owner_id = question_data.user
+        const check = await Like.find(
+            {
+                $and:[
+                    {liker_id: _id},
+                    {post_id: question_id}
+                ]
+            },
+            "_id"
+        )
+        if(check.length>0){
+            // If I already likes this Niche question
+            const result = await Like.deleteOne({check})
+            await Nichequestion.findByIdAndUpdate(
+                {_id: question_id},
+                {$inc:{like_count:-1}}
+            )
+            res.status(200).json({
+                success: true,
+                message:"Unliked Niche question",
+                data: result,
+            })
+        }else{
+            // If I have not liked this Niche question
+            const result = new Like({
+                post_id: question_id,
+                post_type: 'post',
+                post_owner_id: owner_id,
+                liker_id: _id
+            })
+            await result.save()
+            await Nichequestion.findByIdAndUpdate(
+                {_id: question_id},
+                {$inc:{like_count:1}}
+            )
+            res.status(200).json({
+                success: true,
+                message:"Liked Niche question successfully",
+                data: result,
+            })
+            req.receiver = owner_id
+            req.purpose = 'liked'
+            req.init_on = 'post'
+            req.identity = question_id
             next()
         }
     } catch (error) {
