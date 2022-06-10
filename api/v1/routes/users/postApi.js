@@ -12,7 +12,7 @@ const {
   Notifications,
   Saved,
   NewNiche,
-  AddMembertoNiche
+  AddMembertoNiche,
 } = require("../../controllers/users/postController");
 
 const {
@@ -24,7 +24,7 @@ const {
   verifyEmail,
   uploadImage,
   checkImage,
-  getVideoThumbnail,
+  // getVideoThumbnail,
 } = require("../../02_utils/middlewares");
 
 const { validateUserToken } = require("../../02_utils/common");
@@ -55,7 +55,7 @@ router.post(
   validateUserToken,
   checkVideo,
   uploadVideo,
-  getVideoThumbnail,
+  // getVideoThumbnail,
   sendVideo
 );
 
@@ -63,16 +63,20 @@ router.post(
 router.post("/new-post", validateUserToken, createPost);
 
 // save likes for posts and products
-router.post("/like", validateUserToken, RegisterLikes, Notifications)
+router.post("/like", validateUserToken, RegisterLikes, Notifications);
 
 // save post to user saved
-router.post("/saved", validateUserToken, Saved)
+router.post("/saved", validateUserToken, Saved);
 
 // create new niche
-router.post("/createNiche", validateUserToken, NewNiche)
+router.post("/createNiche", validateUserToken, NewNiche);
 
 // add memeber to niche
-router.post("/addNicheMember", validateUserToken, AddMembertoNiche, Notifications)
-
+router.post(
+  "/addNicheMember",
+  validateUserToken,
+  AddMembertoNiche,
+  Notifications
+);
 
 module.exports = router;

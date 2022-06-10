@@ -4,9 +4,9 @@ const path = require("path");
 const fs = require("fs");
 const jimp = require("jimp");
 
-const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
-const ffmpeg = require("fluent-ffmpeg");
-ffmpeg.setFfmpegPath(ffmpegPath);
+// const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
+// const ffmpeg = require("fluent-ffmpeg");
+// ffmpeg.setFfmpegPath(ffmpegPath);
 
 // Check if user already exists
 exports.checkIfUserAlreadyExist = async (req, res, next) => {
@@ -163,7 +163,7 @@ exports.uploadImage = async (req, res, next) => {
 // upload video from req.video to video folder and send video url through req.videoUrl
 exports.uploadVideo = async (req, res, next) => {
   const { video } = req;
-  
+
   const fileName = video.name;
   const extension = path.extname(fileName);
   const md5 = video.md5;
@@ -197,32 +197,32 @@ exports.uploadVideo = async (req, res, next) => {
 };
 
 // get video thumbnail
-exports.getVideoThumbnail = async (req, res, next) => {
-  const { videoUrl } = req;
-  const thumb_path = path.join(__dirname, "../public/uploads/thumbs/");
-  const ffm = ffmpeg({ source: `./public/uploads/videos/${videoUrl}` })
-    .on("filename", (filename) => {
-      const thumb_url = filename;
-      req.thumb_url = thumb_url;
-      console.log(thumb_url);
-      console.log("perform");
-    })
-    .on("end", () => {
-    //     return;
-    //   next();
-    console.log("done");
-    })
-    .on("error", (err) => {
-      console.log("Error", err);
-    })
-    .takeScreenshots({
-      timemarks: [2],
-      count: 1,
-      filename: "thumbnail-%s.png",
-      folder: thumb_path,
-    });
-    // console.log(ffm);
-};
+// exports.getVideoThumbnail = async (req, res, next) => {
+//   const { videoUrl } = req;
+//   const thumb_path = path.join(__dirname, "../public/uploads/thumbs/");
+//   const ffm = ffmpeg({ source: `./public/uploads/videos/${videoUrl}` })
+//     .on("filename", (filename) => {
+//       const thumb_url = filename;
+//       req.thumb_url = thumb_url;
+//       console.log(thumb_url);
+//       console.log("perform");
+//     })
+//     .on("end", () => {
+//     //     return;
+//     //   next();
+//     console.log("done");
+//     })
+//     .on("error", (err) => {
+//       console.log("Error", err);
+//     })
+//     .takeScreenshots({
+//       timemarks: [2],
+//       count: 1,
+//       filename: "thumbnail-%s.png",
+//       folder: thumb_path,
+//     });
+//     // console.log(ffm);
+// };
 
 // check if username or email is in req.body.email
 exports.checkIfIsUser = async (req, res, next) => {

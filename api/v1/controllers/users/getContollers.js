@@ -127,47 +127,56 @@ exports.getPosts = async (req, res) => {
   }
 };
 
-
-// get niches
-// @desc: get niches || @route: GET /api/users/get/niches/:number  || @access:users
 exports.getNiches = async (req, res) => {
-    const { _id } = req.user;
-    const number = req.params.number;
-    try {
-        const data = await Niche.find({$and:[{private:false},{status:'active'}]}).limit(10).skip(number).populate("creator","fullname username photo");
-        // const good = array()
-        // const map = data.map((item,ind)=>{
-            
-        // })
-        return console.log(data)
-        const members = await Nichemember.find(
-            {
-                $and:[
-                    {niche: data._id},
-                    {status: 'active'}
-                ]
-            }
-        )
-        res.status(200).json({
-            success: true,
-            members,
-            // count: data.length,
+  const number = req.params.skip;
+  try {
+    const data = await Niche.find({
+      $and: [{ private: false }, { status: "active" }],
+    })
+      .limit(10)
+      .skip(number)
+      .populate("creator", "fullname username photo");
+
+    // for each niche get 5 members and place under each niche result
+    const result = await Promise.all(
+      data.map(async (niche) => {
+        // find limit of 5 nichemembers where niche = niche._id and status = active
+        const members = await Nichemember.find({
+          $and: [{ niche: niche._id }, { status: "active" }],
+        })
+          .limit(5)
+          .populate("member", "fullname username photo");
+
+        // clean up the members array
+        const membersList = members.map((member) => {
+          return {
+            userId: member.member._id,
+            username: member.member.username,
+            fullname: member.member.fullname,
+            photo: member.member.photo,
+          };
         });
-    } catch (error) {
-        serverError(res, error);
-    }
+        return { ...niche.toJSON(), members: membersList };
+      })
+    );
+    res.status(200).json({
+      success: true,
+      data: result,
+      count: result.length,
+    });
+  } catch (error) {
+    serverError(res, error);
+    console.log(error);
+  }
 };
-
-
 
 // get single niches
 // @desc: get single niches || @route: GET /api/users/get/singleNiche  || @access:users
 exports.getSingleNiches = async (req, res) => {
-    const { _id } = req.user;
-    const {niche_id} = req.body
-    try {
-        
-    } catch (error) {
-        serverError(res, error);
-    }
+  const { _id } = req.user;
+  const { niche_id } = req.body;
+  try {
+  } catch (error) {
+    serverError(res, error);
+  }
 };

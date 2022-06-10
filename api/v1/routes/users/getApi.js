@@ -29,7 +29,7 @@ router.get("/userProfileDetails", validateUserToken, getProfileDetails);
 router.get("/posts", validateUserToken, getPosts);
 
 // get niches
-router.get("/niches/:number", validateUserToken, getNiches);
+router.get("/niches/:skip", validateUserToken, getNiches);
 
 // get single niches by id
 router.get("/singleNiche", validateUserToken, getSingleNiches);
