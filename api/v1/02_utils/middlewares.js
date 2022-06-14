@@ -106,7 +106,7 @@ exports.uploadImage = async (req, res, next) => {
 
   // resize image to three different sizes
   const imageName = `image${md5}${newLocal}`;
-  const imagePath = path.join(__dirname, "../public/uploads/");
+  const imagePath = path.join(__dirname, "../../../public/uploads/");
 
   const imagePathSmall = path.join(imagePath, "small/");
   const imagePathMedium = path.join(imagePath, "medium/");
@@ -137,7 +137,7 @@ exports.uploadImage = async (req, res, next) => {
   }
 
   // save image to disk
-  image.mv(imagePath + "/images" + imageName, async (err) => {
+  image.mv(imagePath + "/images/" + imageName, async (err) => {
     if (err) {
       return serverError(res, err);
     }
@@ -173,7 +173,7 @@ exports.uploadVideo = async (req, res, next) => {
 
   // resize image to three different sizes
   const videoName = `video${md5}${newLocal}${extension}`;
-  const videoPath = path.join(__dirname, "../public/uploads/videos/");
+  const videoPath = path.join(__dirname, "../../../public/uploads/videos/");
 
   const videoPathName = `${videoName}`;
   const videoPathUrl = videoPathName;

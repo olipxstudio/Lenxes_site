@@ -10,6 +10,7 @@ exports.updateUserSecurity = async (req, res) => {
     const user = await User.findById(_id);
     user.password = await User.encryptPassword(password);
     user.username = username;
+    user.status = "active";
     const updatedUser = await user.save();
 
     res.status(200).json({
@@ -53,6 +54,7 @@ exports.updateUserProfile = async (req, res) => {
     user.bio = bio;
     user.category = category;
     user.website = website;
+    user.credit = 5000;
     const updatedUser = await user.save();
 
     res.status(200).json({

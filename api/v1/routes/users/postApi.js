@@ -2,20 +2,29 @@ const express = require("express");
 const router = express.Router();
 
 const {
-  createNewUser,
-  loginUser,
-  forgotPassword,
-  sendPhoto,
-  sendVideo,
-  createPost,
-  RegisterLikes,
-  Notifications,
-  Saved,
-  NewNiche,
-  AddMembertoNiche,
-  followUnfollowNiche,
-  nicheQuestion,
-  likeUnlikeNicheQuestion,
+    createNewUser,
+    loginUser,
+    forgotPassword,
+    sendPhoto,
+    sendVideo,
+    createPost,
+    RegisterLikes,
+    Notifications,
+    Saved,
+    NewNiche,
+    AddMembertoNiche,
+    followUnfollowNiche,
+    nicheQuestion,
+    likeUnlikeNicheQuestion,
+    createDiscuss,
+    addDiscussMember,
+    removeDiscussMember,
+    addDicsussChat,
+    sendDiscussNotification,
+    followOrUnfollow,
+    saveComment,
+    shareItem,
+    saveSocial
 } = require("../../controllers/users/postController");
 
 const {
@@ -95,5 +104,33 @@ router.post(
   likeUnlikeNicheQuestion,
   Notifications
 );
+
+// Create a Discuss
+router.post("/createDiscuss", validateUserToken, createDiscuss, Notifications);
+
+// add member to a Discuss
+router.post("/addDiscussMember", validateUserToken, addDiscussMember, Notifications);
+
+// add member to a Discuss
+router.post("/removeDiscussMember", validateUserToken, removeDiscussMember);
+
+// post to a Discuss chat
+router.post("/addDicsussChat", validateUserToken, addDicsussChat, sendDiscussNotification);
+
+// follow and unfollow an account
+router.post("/followOrUnfollow", validateUserToken, followOrUnfollow, Notifications);
+
+// create a comment
+router.post("/saveComment", validateUserToken, saveComment, Notifications);
+
+// Share to other account
+router.post("/shareItem", validateUserToken, shareItem, Notifications);
+
+// save or update social
+router.post("/saveSocial", validateUserToken, saveSocial);
+
+
+
+
 
 module.exports = router;

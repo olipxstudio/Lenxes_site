@@ -42,4 +42,11 @@ router.patch(
 // reset password
 router.patch("/resetPassword", validateUserToken, updateUserPassword);
 
+
+
+
+
+
+
+
 module.exports = router;

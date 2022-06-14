@@ -31,6 +31,14 @@ app.use("/api/users/post", require("./api/v1/routes/users/postApi"));
 app.use("/api/users/patch", require("./api/v1/routes/users/patchApi"));
 app.use("/api/users/get", require("./api/v1/routes/users/getApi"));
 
+app.use("/api/professionals/post", require("./api/v1/routes/professionals/postApi"));
+app.use("/api/professionals/patch", require("./api/v1/routes/professionals/patchApi"));
+app.use("/api/professionals/get", require("./api/v1/routes/professionals/getApi"));
+
+app.use("/api/stores/post", require("./api/v1/routes/stores/postApi"));
+app.use("/api/stores/patch", require("./api/v1/routes/stores/patchApi"));
+app.use("/api/stores/get", require("./api/v1/routes/stores/getApi"));
+
 app.use("*", (req, res) => {
   clientError(res, "Page not found");
 });

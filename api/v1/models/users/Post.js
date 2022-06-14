@@ -46,6 +46,9 @@ const Post = new mongoose.Schema(
       type: String,
       default: null,
     },
+    linked_word:{
+        type: String,
+    },
     // comment permissions
     comment_permission: {
       type: String,

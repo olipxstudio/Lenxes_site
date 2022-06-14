@@ -87,12 +87,24 @@ const UserSchema = new mongoose.Schema(
     category: {
       type: String,
     },
+    followers:{
+        type: Number,
+        default: 0,
+    },
+    following:{
+        type: Number,
+        default: 0,
+    },
     posts: {
-      type: Number,
-      default: 0,
+        type: Number,
+        default: 0,
     },
     website: {
       type: String,
+    },
+    credit: {
+      type: Number,
+      default: 0
     },
   },
   {

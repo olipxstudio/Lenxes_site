@@ -28,7 +28,7 @@ const NotificationScheme = new Schema({
         type: String,
         lowercase: true,
         required: true
-        // liked, commented, followed, messaged, discuss, membertoniche, invited, tagged
+        // liked, commented, followed, messaged, discuss, membertoniche, invited, tagged, shared
     },
     status:{
         type: String,
