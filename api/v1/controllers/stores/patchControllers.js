@@ -1,4 +1,9 @@
 const User = require("../../models/users/User");
+const Category = require("../../models/stores/Category");
+const Subcategory = require("../../models/stores/Subcategory");
+const Subsetcategory = require("../../models/stores/Subsetcategory");
+
+
 const { clientError, serverError } = require("../../02_utils/common");
 
 
@@ -101,6 +106,95 @@ exports.completeStore = async (req, res) => {
             success: true,
             message:"Store Updated successfully",
             data: store,
+        })
+    } catch (error) {
+        clientError(res, error)
+    }
+}
+
+
+
+// update a store category
+// @desc: update a store category || @route: POST /api/store/patch/updateCategory  || @access:public
+exports.updateCategory = async (req, res) => {
+    const {_id} = req.user
+    const {store_id, category_id, name} = req.body;
+    let order = 1;
+    try {
+        const cat = await Category.findOneAndUpdate(
+            {
+                $and:[
+                    {user:_id},
+                    {store:store_id},
+                    {_id:category_id}
+                ]
+            },
+            {
+                $set:{name}
+            }
+        )
+        res.status(200).json({
+            success: true,
+            message:"Category Updated successfully",
+            data: cat,
+        })
+    } catch (error) {
+        clientError(res, error)
+    }
+}
+
+
+// update a store subcategory
+// @desc: update a store subcategory || @route: POST /api/store/patch/updateSubCategory  || @access:public
+exports.updateSubCategory = async (req, res) => {
+    const {_id} = req.user
+    const {store_id, name, sub_category_id} = req.body;
+    try {
+        const cat = await Subcategory.findOneAndUpdate(
+            {
+                $and:[
+                    {user:_id},
+                    {store:store_id},
+                    {_id:sub_category_id}
+                ]
+            },
+            {
+                $set:{name}
+            }
+        )
+        res.status(200).json({
+            success: true,
+            message:"Subcategory Updated successfully",
+            data: cat,
+        })
+    } catch (error) {
+        clientError(res, error)
+    }
+}
+
+
+// update a store subsetcategory
+// @desc: update a store subsetcategory || @route: POST /api/store/patch/updateSubSetCategory  || @access:public
+exports.updateSubSetCategory = async (req, res) => {
+    const {_id} = req.user
+    const {store_id, name, sub_set_category_id} = req.body;
+    try {
+        const cat = await Subsetcategory.findOneAndUpdate(
+            {
+                $and:[
+                    {user:_id},
+                    {store:store_id},
+                    {_id:sub_set_category_id}
+                ]
+            },
+            {
+                $set:{name}
+            }
+        )
+        res.status(200).json({
+            success: true,
+            message:"Subsetcategory Updated successfully",
+            data: cat,
         })
     } catch (error) {
         clientError(res, error)

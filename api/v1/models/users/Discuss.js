@@ -18,13 +18,13 @@ const DiscussSchema = new Schema(
         required: true
         // product, post, question, jive
     },
-    members_count:{
-        type: Number,
-        default: 0
-    },
-    time_remaining: {
+    members:[{
+        type: SchemaTypes.ObjectId,
+        ref:'User',
+    }],
+    expires_in: {
       type: Date,
-      default: () => Date.now()
+      default: Date.now() + (24 * 60 * 60 * 1000)
     },
     status: {
       type: String,

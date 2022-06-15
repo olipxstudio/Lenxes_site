@@ -3,6 +3,9 @@ const router = express.Router();
 
 const {
     createStore,
+    addCategory,
+    addSubCategory,
+    addSubSetCategory
 } = require("../../controllers/stores/postController");
 
 const {
@@ -21,6 +24,15 @@ const { validateUserToken } = require("../../02_utils/common");
 
 // save or update social
 router.post("/createStore", validateUserToken, createStore);
+
+// add a store category
+router.post("/addCategory", validateUserToken, addCategory);
+
+// add a store subcategory
+router.post("/addSubCategory", validateUserToken, addSubCategory);
+
+// add a store subsetcategory
+router.post("/addSubSetCategory", validateUserToken, addSubSetCategory);
 
 
 
