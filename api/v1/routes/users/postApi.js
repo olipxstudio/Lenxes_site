@@ -2,29 +2,29 @@ const express = require("express");
 const router = express.Router();
 
 const {
-    createNewUser,
-    loginUser,
-    forgotPassword,
-    sendPhoto,
-    sendVideo,
-    createPost,
-    RegisterLikes,
-    Notifications,
-    Saved,
-    NewNiche,
-    AddMembertoNiche,
-    followUnfollowNiche,
-    nicheQuestion,
-    likeUnlikeNicheQuestion,
-    createDiscuss,
-    addDiscussMember,
-    removeDiscussMember,
-    addDicsussChat,
-    sendDiscussNotification,
-    followOrUnfollow,
-    saveComment,
-    shareItem,
-    saveSocial
+  createNewUser,
+  loginUser,
+  forgotPassword,
+  sendPhoto,
+  sendVideo,
+  createPost,
+  RegisterLikes,
+  Notifications,
+  Saved,
+  NewNiche,
+  AddMembertoNiche,
+  followUnfollowNiche,
+  nicheQuestion,
+  likeUnlikeNicheQuestion,
+  createDiscuss,
+  addDiscussMember,
+  removeDiscussMember,
+  addDicsussChat,
+  sendDiscussNotification,
+  followOrUnfollow,
+  saveComment,
+  shareItem,
+  saveSocial,
 } = require("../../controllers/users/postController");
 
 const {
@@ -36,7 +36,7 @@ const {
   verifyEmail,
   uploadImage,
   checkImage,
-  // getVideoThumbnail,
+  getVideoThumbnail,
 } = require("../../02_utils/middlewares");
 
 const { validateUserToken } = require("../../02_utils/common");
@@ -67,7 +67,7 @@ router.post(
   validateUserToken,
   checkVideo,
   uploadVideo,
-  // getVideoThumbnail,
+  getVideoThumbnail,
   sendVideo
 );
 
@@ -109,16 +109,31 @@ router.post(
 router.post("/createDiscuss", validateUserToken, createDiscuss, Notifications);
 
 // add member to a Discuss
-router.post("/addDiscussMember", validateUserToken, addDiscussMember, Notifications);
+router.post(
+  "/addDiscussMember",
+  validateUserToken,
+  addDiscussMember,
+  Notifications
+);
 
 // add member to a Discuss
 router.post("/removeDiscussMember", validateUserToken, removeDiscussMember);
 
 // post to a Discuss chat
-router.post("/addDicsussChat", validateUserToken, addDicsussChat, sendDiscussNotification);
+router.post(
+  "/addDicsussChat",
+  validateUserToken,
+  addDicsussChat,
+  sendDiscussNotification
+);
 
 // follow and unfollow an account
-router.post("/followOrUnfollow", validateUserToken, followOrUnfollow, Notifications);
+router.post(
+  "/followOrUnfollow",
+  validateUserToken,
+  followOrUnfollow,
+  Notifications
+);
 
 // create a comment
 router.post("/saveComment", validateUserToken, saveComment, Notifications);
@@ -128,9 +143,5 @@ router.post("/shareItem", validateUserToken, shareItem, Notifications);
 
 // save or update social
 router.post("/saveSocial", validateUserToken, saveSocial);
-
-
-
-
 
 module.exports = router;

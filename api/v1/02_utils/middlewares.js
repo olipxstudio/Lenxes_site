@@ -4,9 +4,9 @@ const path = require("path");
 const fs = require("fs");
 const jimp = require("jimp");
 
-// const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
-// const ffmpeg = require("fluent-ffmpeg");
-// ffmpeg.setFfmpegPath(ffmpegPath);
+const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
+const ffmpeg = require("fluent-ffmpeg");
+ffmpeg.setFfmpegPath(ffmpegPath);
 
 // Check if user already exists
 exports.checkIfUserAlreadyExist = async (req, res, next) => {
@@ -137,7 +137,7 @@ exports.uploadImage = async (req, res, next) => {
   }
 
   // save image to disk
-  image.mv(imagePath + "/images/" + imageName, async (err) => {
+  image.mv(imagePath + imageName, async (err) => {
     if (err) {
       return serverError(res, err);
     }
@@ -196,33 +196,44 @@ exports.uploadVideo = async (req, res, next) => {
   });
 };
 
-// get video thumbnail
-// exports.getVideoThumbnail = async (req, res, next) => {
-//   const { videoUrl } = req;
-//   const thumb_path = path.join(__dirname, "../public/uploads/thumbs/");
-//   const ffm = ffmpeg({ source: `./public/uploads/videos/${videoUrl}` })
-//     .on("filename", (filename) => {
-//       const thumb_url = filename;
-//       req.thumb_url = thumb_url;
-//       console.log(thumb_url);
-//       console.log("perform");
-//     })
-//     .on("end", () => {
-//     //     return;
-//     //   next();
-//     console.log("done");
-//     })
-//     .on("error", (err) => {
-//       console.log("Error", err);
-//     })
-//     .takeScreenshots({
-//       timemarks: [2],
-//       count: 1,
-//       filename: "thumbnail-%s.png",
-//       folder: thumb_path,
-//     });
-//     // console.log(ffm);
-// };
+// get video thumbnail and save it to disk
+exports.getVideoThumbnail = async (req, res, next) => {
+  try {
+    const { videoUrl } = req;
+    const videoPath = path.join(__dirname, "../../../public/uploads/videos/");
+    const videoName = videoUrl.split("/")[videoUrl.split("/").length - 1];
+    const videoPathName = `${videoName}`;
+    const videoPathUrl = videoPathName;
+
+    const video = ffmpeg(videoPath + videoPathName);
+    const image = video.takeScreenshots({
+      count: 1,
+      timemarks: ["0"],
+      filename: "thumbnail-%s.png",
+      // size: "320x240",
+    });
+
+    image.on("end", async () => {
+      const imagePath = path.join(
+        __dirname,
+        "../../../public/uploads/thumbnails/"
+      );
+      const imageName = `thumbnail-${videoName}`;
+      const imagePathName = `${imageName}`;
+      const imagePathUrl = imagePathName;
+
+      const image = await jimp.read(imagePath + imagePathName);
+      image.resize(200, jimp.AUTO);
+      image.write(imagePath + imagePathName);
+
+      req.videoThumbnail = imagePathUrl;
+      next();
+    });
+  } catch (err) {
+    console.log(err);
+    return serverError(res, err);
+  }
+}; // end of getVideoThumbnail
 
 // check if username or email is in req.body.email
 exports.checkIfIsUser = async (req, res, next) => {

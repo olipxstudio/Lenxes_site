@@ -148,7 +148,7 @@ exports.forgotPassword = async (req, res) => {
 // @desc: send video properties to user || @route: POST /api/users/post/uploadVideo  || @access:public
 exports.sendVideo = async (req, res) => {
   const video = req.videoUrl;
-  const thumbnail = req.thumb_url;
+  const thumbnail = req.videoThumbnail;
   return res.status(200).json({
     success: true,
     data: {
@@ -230,695 +230,651 @@ exports.createPost = async (req, res) => {
 // save new like
 // @desc: save new like || @route: POST /api/users/post/like  || @access:public
 exports.RegisterLikes = async (req, res, next) => {
-    const {_id} = req.user;
-    const {post_id, post_type} = req.body;
-    try {
-        const postData = await Post.findById({_id:post_id})
-        const send_to = postData.user
-        const check = await Like.find(
-            {
-                $and:[
-                    {post_id},
-                    {post_type},
-                    {post_owner_id: send_to},
-                    {liker_id: _id}
-                ]
-            },
-            "_id"
-        )
-        if (check.length>0) {
-            // If like is found - meaning user already liked this post
-            const result = await Like.deleteOne({check})
-            await Post.findByIdAndUpdate(
-                {_id: post_id},
-                {$inc: {like_count: -1}}
-            )
-            res.status(200).json({
-                success: true,
-                message:"Post unliked successfully",
-                data: result,
-            })
-        } else {
-            // If not liked before
-            const result = new Like({
-                post_id,
-                post_type,
-                post_owner_id: send_to,
-                liker_id: _id
-            })
-            await result.save()
-            await Post.findByIdAndUpdate(
-                {_id: post_id},
-                {$inc: {like_count: 1}}
-            )
-            res.status(200).json({
-                success: true,
-                message:"Post liked successfully",
-                data: result,
-            })
-            req.receiver = send_to
-            req.purpose = 'liked'
-            req.init_on = 'post'
-            req.identity = post_id
-            next()
-        }
-    } catch (error) {
-        return clientError(res, error);
+  const { _id } = req.user;
+  const { post_id, post_type } = req.body;
+  try {
+    const postData = await Post.findById({ _id: post_id });
+    const send_to = postData.user;
+    const check = await Like.find(
+      {
+        $and: [
+          { post_id },
+          { post_type },
+          { post_owner_id: send_to },
+          { liker_id: _id },
+        ],
+      },
+      "_id"
+    );
+    if (check.length > 0) {
+      // If like is found - meaning user already liked this post
+      const result = await Like.deleteOne({ check });
+      await Post.findByIdAndUpdate(
+        { _id: post_id },
+        { $inc: { like_count: -1 } }
+      );
+      res.status(200).json({
+        success: true,
+        message: "Post unliked successfully",
+        data: result,
+      });
+    } else {
+      // If not liked before
+      const result = new Like({
+        post_id,
+        post_type,
+        post_owner_id: send_to,
+        liker_id: _id,
+      });
+      await result.save();
+      await Post.findByIdAndUpdate(
+        { _id: post_id },
+        { $inc: { like_count: 1 } }
+      );
+      res.status(200).json({
+        success: true,
+        message: "Post liked successfully",
+        data: result,
+      });
+      req.receiver = send_to;
+      req.purpose = "liked";
+      req.init_on = "post";
+      req.identity = post_id;
+      next();
     }
-}
+  } catch (error) {
+    return clientError(res, error);
+  }
+};
 
 // save new notification
 // @desc: save new notification || @route: POST /api/users/post/notification  || @access:app
 exports.Notifications = async (req, res) => {
-    const {_id} = req.user;
-    const receiver = req.receiver;
-    const purpose = req.purpose;
-    const init_on = req.init_on;
-    const identity = req.identity;
-    try {
-        const result = new Notification({
-            identity: init_on === 'post' ? { post_id: identity } : { account_id: identity },
-            sender: _id,
-            receiver,
-            purpose,
-            init_on
-        })
-        await result.save()
-    } catch (error) {
-        return clientError(res, error);
-    }
-}
-
+  const { _id } = req.user;
+  const receiver = req.receiver;
+  const purpose = req.purpose;
+  const init_on = req.init_on;
+  const identity = req.identity;
+  try {
+    const result = new Notification({
+      identity:
+        init_on === "post" ? { post_id: identity } : { account_id: identity },
+      sender: _id,
+      receiver,
+      purpose,
+      init_on,
+    });
+    await result.save();
+  } catch (error) {
+    return clientError(res, error);
+  }
+};
 
 // save post to user saved
 // @desc: save post to user saved || @route: POST /api/users/post/saved  || @access:public
 exports.Saved = async (req, res) => {
-    const {_id} = req.user;
-    const {post_id} = req.body;
-    try {
-        const postData = await Post.findById({_id:post_id})
-        const ownerId = postData.user
-        const check = await Saved.find(
-            {
-                $and:[
-                    {post_id},
-                    {post_owner_id: ownerId},
-                    {user: _id}
-                ]
-            },
-            "_id"
-        )
-        if (check.length>0) {
-            // If saved is found - meaning user already saved this post
-            const result = await Saved.deleteOne({check})
-            res.status(200).json({
-                success: true,
-                message:"Post unsaved successfully",
-                data: result,
-            })
-        } else {
-            // If not saved before
-            const result = new Saved({
-                post_id,
-                user: _id,
-                post_owner_id: ownerId
-            })
-            await result.save()
-            res.status(200).json({
-                success: true,
-                message:"Post saved successfully",
-                data: result,
-            })
-        }
-    } catch (error) {
-        return clientError(res, error);
+  const { _id } = req.user;
+  const { post_id } = req.body;
+  try {
+    const postData = await Post.findById({ _id: post_id });
+    const ownerId = postData.user;
+    const check = await Saved.find(
+      {
+        $and: [{ post_id }, { post_owner_id: ownerId }, { user: _id }],
+      },
+      "_id"
+    );
+    if (check.length > 0) {
+      // If saved is found - meaning user already saved this post
+      const result = await Saved.deleteOne({ check });
+      res.status(200).json({
+        success: true,
+        message: "Post unsaved successfully",
+        data: result,
+      });
+    } else {
+      // If not saved before
+      const result = new Saved({
+        post_id,
+        user: _id,
+        post_owner_id: ownerId,
+      });
+      await result.save();
+      res.status(200).json({
+        success: true,
+        message: "Post saved successfully",
+        data: result,
+      });
     }
-}
-
+  } catch (error) {
+    return clientError(res, error);
+  }
+};
 
 // create new niche
 // @desc: create new niche || @route: POST /api/users/post/createNiche  || @access:public
 exports.NewNiche = async (req, res) => {
-    const {_id} = req.user
-    const {title, description, private, question} = req.body
-    try {
-        const result = new Niche({
-            title,
-            description,
-            private,
-            question,
-            creator: _id
-        })
-        await result.save()
-        res.status(200).json({
-            success: true,
-            message: "Niche created successfully",
-            data: result
-        })
-    } catch (error) {
-        clientError(res, error)
-    }
-}
-
+  const { _id } = req.user;
+  const { title, description, private, question } = req.body;
+  try {
+    const result = new Niche({
+      title,
+      description,
+      private,
+      question,
+      creator: _id,
+    });
+    await result.save();
+    res.status(200).json({
+      success: true,
+      message: "Niche created successfully",
+      data: result,
+    });
+  } catch (error) {
+    clientError(res, error);
+  }
+};
 
 // add member to niche
 // @desc: add member to niche || @route: POST /api/users/post/addNicheMember  || @access:public
 exports.AddMembertoNiche = async (req, res, next) => {
-    const {_id} = req.user
-    const {member_id, niche_id} = req.body
-    try {
-        const check = await Nichemember.find(
-            {
-                $and:[
-                    {member: member_id},
-                    {niche: niche_id}
-                ]
-            },
-            "_id"
-        )
-        if (check.length>0) {
-            // If member is found
-            const result = await Nichemember.deleteOne({check})
-            await Niche.findOneAndUpdate(
-                {_id: niche_id},
-                {$inc:{members_count: -1}}
-            )
-            res.status(200).json({
-                success: true,
-                message:"Member removed successfully",
-                data: result,
-            })
-        } else {
-            // If niche is pending
-            await Niche.findOneAndUpdate(
-                {
-                    $and:[
-                        {_id: niche_id},
-                        {status: 'pending'}
-                    ]
-                },
-                {$set:{status: 'active'}}
-            )
-            await Niche.findOneAndUpdate(
-                {_id: niche_id},
-                {$inc:{members_count: 1}}
-            )
-            // If not member before
-            const result = new Nichemember({
-                niche: niche_id,
-                member: member_id,
-                niche_owner: _id
-            })
-            await result.save()
-            res.status(200).json({
-                success: true,
-                message:"Member added successfully",
-                data: result,
-            })
-            req.receiver = member_id
-            req.purpose = 'membertoniche'
-            req.init_on = 'account'
-            req.identity = member_id
-            next()
-        }
-    } catch (error) {
-        clientError(res, error)
+  const { _id } = req.user;
+  const { member_id, niche_id } = req.body;
+  try {
+    const check = await Nichemember.find(
+      {
+        $and: [{ member: member_id }, { niche: niche_id }],
+      },
+      "_id"
+    );
+    if (check.length > 0) {
+      // If member is found
+      const result = await Nichemember.deleteOne({ check });
+      await Niche.findOneAndUpdate(
+        { _id: niche_id },
+        { $inc: { members_count: -1 } }
+      );
+      res.status(200).json({
+        success: true,
+        message: "Member removed successfully",
+        data: result,
+      });
+    } else {
+      // If niche is pending
+      await Niche.findOneAndUpdate(
+        {
+          $and: [{ _id: niche_id }, { status: "pending" }],
+        },
+        { $set: { status: "active" } }
+      );
+      await Niche.findOneAndUpdate(
+        { _id: niche_id },
+        { $inc: { members_count: 1 } }
+      );
+      // If not member before
+      const result = new Nichemember({
+        niche: niche_id,
+        member: member_id,
+        niche_owner: _id,
+      });
+      await result.save();
+      res.status(200).json({
+        success: true,
+        message: "Member added successfully",
+        data: result,
+      });
+      req.receiver = member_id;
+      req.purpose = "membertoniche";
+      req.init_on = "account";
+      req.identity = member_id;
+      next();
     }
-}
-
-
+  } catch (error) {
+    clientError(res, error);
+  }
+};
 
 // follow and unfollow niche
 // @desc: follow and unfollow niche || @route: POST /api/users/post/followUnfollowNiche  || @access:public
 exports.followUnfollowNiche = async (req, res) => {
-    const {_id} = req.user
-    const {niche_id} = req.body
-    try {
-        const check = await Nichefollow.find(
-            {
-                $and:[
-                    {user: _id},
-                    {follow: niche_id}
-                ]
-            },
-            "_id"
-        )
-        // return console.log(check)
-        if(check.length>0){
-            // If I already follow this Niche
-            const result = await Nichefollow.deleteOne({check})
-            res.status(200).json({
-                success: true,
-                message:"Unfollowed Niche successfully",
-                data: result,
-            })
-        }else{
-            // If not following Niche before
-            const result = new Nichefollow({
-                user: _id,
-                follow: niche_id
-            })
-            await result.save()
-            res.status(200).json({
-                success: true,
-                message:"Followed Niche successfully",
-                data: result,
-            })
-        }
-    } catch (error) {
-        clientError(res, error)
+  const { _id } = req.user;
+  const { niche_id } = req.body;
+  try {
+    const check = await Nichefollow.find(
+      {
+        $and: [{ user: _id }, { follow: niche_id }],
+      },
+      "_id"
+    );
+    // return console.log(check)
+    if (check.length > 0) {
+      // If I already follow this Niche
+      const result = await Nichefollow.deleteOne({ check });
+      res.status(200).json({
+        success: true,
+        message: "Unfollowed Niche successfully",
+        data: result,
+      });
+    } else {
+      // If not following Niche before
+      const result = new Nichefollow({
+        user: _id,
+        follow: niche_id,
+      });
+      await result.save();
+      res.status(200).json({
+        success: true,
+        message: "Followed Niche successfully",
+        data: result,
+      });
     }
-}
-
+  } catch (error) {
+    clientError(res, error);
+  }
+};
 
 // ask niche question
 // @desc: ask niche question || @route: POST /api/users/post/nicheQuestion  || @access:public
 exports.nicheQuestion = async (req, res) => {
-    const {_id} = req.user
-    const {niche_id, question, photo} = req.body
-    try {
-        const result = new Nichequestion({
-            question,
-            photo,
-            niche: niche_id,
-            user: _id
-        })
-        await result.save()
-        res.status(200).json({
-            success: true,
-            message:"Question asked successfully",
-            data: result,
-        })
-    } catch (error) {
-        clientError(res, error)
-    }
-}
-
-
+  const { _id } = req.user;
+  const { niche_id, question, photo } = req.body;
+  try {
+    const result = new Nichequestion({
+      question,
+      photo,
+      niche: niche_id,
+      user: _id,
+    });
+    await result.save();
+    res.status(200).json({
+      success: true,
+      message: "Question asked successfully",
+      data: result,
+    });
+  } catch (error) {
+    clientError(res, error);
+  }
+};
 
 // like and unlike niche question
 // @desc: like and unlike niche question || @route: POST /api/users/post/likeUnlikeNicheQuestion  || @access:public
 exports.likeUnlikeNicheQuestion = async (req, res, next) => {
-    const {_id} = req.user
-    const {question_id} = req.body
-    try {
-        const question_data = await Nichequestion.findOne({_id: question_id})
-        const owner_id = question_data.user
-        const check = await Like.find(
-            {
-                $and:[
-                    {liker_id: _id},
-                    {post_id: question_id}
-                ]
-            },
-            "_id"
-        )
-        if(check.length>0){
-            // If I already likes this Niche question
-            const result = await Like.deleteOne({check})
-            await Nichequestion.findByIdAndUpdate(
-                {_id: question_id},
-                {$inc:{like_count:-1}}
-            )
-            res.status(200).json({
-                success: true,
-                message:"Unliked Niche question",
-                data: result,
-            })
-        }else{
-            // If I have not liked this Niche question
-            const result = new Like({
-                post_id: question_id,
-                post_type: 'post',
-                post_owner_id: owner_id,
-                liker_id: _id
-            })
-            await result.save()
-            await Nichequestion.findByIdAndUpdate(
-                {_id: question_id},
-                {$inc:{like_count:1}}
-            )
-            res.status(200).json({
-                success: true,
-                message:"Liked Niche question successfully",
-                data: result,
-            })
-            req.receiver = owner_id
-            req.purpose = 'liked'
-            req.init_on = 'post'
-            req.identity = question_id
-            next()
-        }
-    } catch (error) {
-        clientError(res, error)
+  const { _id } = req.user;
+  const { question_id } = req.body;
+  try {
+    const question_data = await Nichequestion.findOne({ _id: question_id });
+    const owner_id = question_data.user;
+    const check = await Like.find(
+      {
+        $and: [{ liker_id: _id }, { post_id: question_id }],
+      },
+      "_id"
+    );
+    if (check.length > 0) {
+      // If I already likes this Niche question
+      const result = await Like.deleteOne({ check });
+      await Nichequestion.findByIdAndUpdate(
+        { _id: question_id },
+        { $inc: { like_count: -1 } }
+      );
+      res.status(200).json({
+        success: true,
+        message: "Unliked Niche question",
+        data: result,
+      });
+    } else {
+      // If I have not liked this Niche question
+      const result = new Like({
+        post_id: question_id,
+        post_type: "post",
+        post_owner_id: owner_id,
+        liker_id: _id,
+      });
+      await result.save();
+      await Nichequestion.findByIdAndUpdate(
+        { _id: question_id },
+        { $inc: { like_count: 1 } }
+      );
+      res.status(200).json({
+        success: true,
+        message: "Liked Niche question successfully",
+        data: result,
+      });
+      req.receiver = owner_id;
+      req.purpose = "liked";
+      req.init_on = "post";
+      req.identity = question_id;
+      next();
     }
-}
-
+  } catch (error) {
+    clientError(res, error);
+  }
+};
 
 // create Discuss
 // @desc: create Discuss || @route: POST /api/users/post/createDiscuss  || @access:public
 exports.createDiscuss = async (req, res, next) => {
-    const {_id} = req.user;
-    const {discuss_item, type, member_one} = req.body
-    try {
-        const result = new Discuss({
-            creator: _id,
-            discuss_item,
-            type,
-            members_count: 1,
-            status: 'active'
-        })
-        await result.save()
-        const members = new Discussmembers({
-            discuss: result._id,
-            user: member_one
-        })
-        await members.save()
-        res.status(200).json({
-            success: true,
-            message:"Discuss created successfully",
-            data: result,
-        })
-        req.receiver = member_one
-        req.purpose = 'discuss'
-        req.init_on = 'account'
-        req.identity = member_one
-        next()
-    } catch (error) {
-        clientError(res, error)
-    }
-}
+  const { _id } = req.user;
+  const { discuss_item, type, member_one } = req.body;
+  try {
+    const result = new Discuss({
+      creator: _id,
+      discuss_item,
+      type,
+      members_count: 1,
+      status: "active",
+    });
+    await result.save();
+    const members = new Discussmembers({
+      discuss: result._id,
+      user: member_one,
+    });
+    await members.save();
+    res.status(200).json({
+      success: true,
+      message: "Discuss created successfully",
+      data: result,
+    });
+    req.receiver = member_one;
+    req.purpose = "discuss";
+    req.init_on = "account";
+    req.identity = member_one;
+    next();
+  } catch (error) {
+    clientError(res, error);
+  }
+};
 
 // add member to Discuss
 // @desc: add member to Discuss || @route: POST /api/users/post/addDiscussMember  || @access:public
 exports.addDiscussMember = async (req, res, next) => {
-    const {_id} = req.user;
-    const {discuss_id, member} = req.body
-    try {
-        const members = new Discussmembers({
-            discuss: discuss_id,
-            user: member
-        })
-        await members.save()
-        await Discuss.findByIdAndUpdate(
-            {_id:discuss_id},
-            {$inc:{members_count:1}}
-        )
-        res.status(200).json({
-            success: true,
-            message:"Discuss member added successfully",
-            data: members,
-        })
-        req.receiver = member
-        req.purpose = 'discuss'
-        req.init_on = 'account'
-        req.identity = member
-        next()
-    } catch (error) {
-        clientError(res, error)
-    }
-}
-
+  const { _id } = req.user;
+  const { discuss_id, member } = req.body;
+  try {
+    const members = new Discussmembers({
+      discuss: discuss_id,
+      user: member,
+    });
+    await members.save();
+    await Discuss.findByIdAndUpdate(
+      { _id: discuss_id },
+      { $inc: { members_count: 1 } }
+    );
+    res.status(200).json({
+      success: true,
+      message: "Discuss member added successfully",
+      data: members,
+    });
+    req.receiver = member;
+    req.purpose = "discuss";
+    req.init_on = "account";
+    req.identity = member;
+    next();
+  } catch (error) {
+    clientError(res, error);
+  }
+};
 
 // remove member from Discuss
 // @desc: remove member from Discuss || @route: POST /api/users/post/removeDiscussMember  || @access:public
 exports.removeDiscussMember = async (req, res) => {
-    const {_id} = req.user;
-    const {discuss_id, member} = req.body
-    try {
-        await Discussmembers.findOneAndDelete(
-            {user:member}
-        )
-        await Discuss.findByIdAndUpdate(
-            {_id:discuss_id},
-            {$inc:{members_count:-1}}
-        )
-        res.status(200).json({
-            success: true,
-            message:"Discuss member removed successfully"
-        })
-    } catch (error) {
-        clientError(res, error)
-    }
-}
-
+  const { _id } = req.user;
+  const { discuss_id, member } = req.body;
+  try {
+    await Discussmembers.findOneAndDelete({ user: member });
+    await Discuss.findByIdAndUpdate(
+      { _id: discuss_id },
+      { $inc: { members_count: -1 } }
+    );
+    res.status(200).json({
+      success: true,
+      message: "Discuss member removed successfully",
+    });
+  } catch (error) {
+    clientError(res, error);
+  }
+};
 
 // add to a Discuss chat
 // @desc: add to a Discuss chat || @route: POST /api/users/post/addDicsussChat  || @access:public
 exports.addDicsussChat = async (req, res, next) => {
-    const {_id} = req.user;
-    const {discuss_id, photo, audio, text, replied_to, attached_type, attached} = req.body
-    try {
-        const result = new DiscussChat(
-            {
-                user: _id,
-                discuss: discuss_id,
-                photo,
-                audio,
-                text,
-                replied_to,
-                attached_type,
-                attached: attached_type === 'post' ? { post: attached } : { product: attached },
-            }
-        )
-        result.save()
-        res.status(200).json({
-            success: true,
-            message:"Chat sent successfully",
-            data: result,
-        })
-        req.discuss = discuss_id
-        next()
-    } catch (error) {
-        clientError(res, error)
-    }
-}
+  const { _id } = req.user;
+  const {
+    discuss_id,
+    photo,
+    audio,
+    text,
+    replied_to,
+    attached_type,
+    attached,
+  } = req.body;
+  try {
+    const result = new DiscussChat({
+      user: _id,
+      discuss: discuss_id,
+      photo,
+      audio,
+      text,
+      replied_to,
+      attached_type,
+      attached:
+        attached_type === "post" ? { post: attached } : { product: attached },
+    });
+    result.save();
+    res.status(200).json({
+      success: true,
+      message: "Chat sent successfully",
+      data: result,
+    });
+    req.discuss = discuss_id;
+    next();
+  } catch (error) {
+    clientError(res, error);
+  }
+};
 
 // send notification to all discuss members except the poster
 exports.sendDiscussNotification = async (req, res) => {
-    const discuss = req.discuss;
-    try {
-        const data = await Discussmembers.find({$and:[{discuss:discuss},{status:'active'}]})
-        const result = await Promise.all(
-            data.map(async(item)=>{
-                const get = await DiscussChatNotify.findOneAndUpdate(
-                    {
-                        $and:[
-                            {discuss:discuss},
-                            {receiver:item.user}
-                        ]
-                    },
-                    {$inc:{count:1}, $set:{status:'unread'}}
-                )
-                if(get==null){
-                    const putin = new DiscussChatNotify({
-                        discuss:discuss,
-                        count:1,
-                        receiver:item.user
-                    })
-                    await putin.save()
-                    return putin;
-                }else{
-                    return get;
-                }
-            })
-        )
-    } catch (error) {
-        clientError(res, error)
-    }
-}
+  const discuss = req.discuss;
+  try {
+    const data = await Discussmembers.find({
+      $and: [{ discuss: discuss }, { status: "active" }],
+    });
+    const result = await Promise.all(
+      data.map(async (item) => {
+        const get = await DiscussChatNotify.findOneAndUpdate(
+          {
+            $and: [{ discuss: discuss }, { receiver: item.user }],
+          },
+          { $inc: { count: 1 }, $set: { status: "unread" } }
+        );
+        if (get == null) {
+          const putin = new DiscussChatNotify({
+            discuss: discuss,
+            count: 1,
+            receiver: item.user,
+          });
+          await putin.save();
+          return putin;
+        } else {
+          return get;
+        }
+      })
+    );
+  } catch (error) {
+    clientError(res, error);
+  }
+};
 
 // follow or unfollow an account
 // @desc: follow or unfollow an account || @route: POST /api/users/post/followOrUnfollow  || @access:public
 exports.followOrUnfollow = async (req, res, next) => {
-    const {_id} = req.user
-    const {follow_id} = req.body
-    try {
-        const check = await Follow.find(
-            {
-                $and:[
-                    {user: _id},
-                    {follow: follow_id}
-                ]
-            },
-            "_id"
-        )
-        // return console.log(check)
-        if(check.length>0){
-            // If I already follow account
-            const result = await Follow.deleteOne({check})
-            await User.findByIdAndUpdate(
-                {_id: follow_id},
-                {$inc: {followers: -1}}
-            )
-            await User.findByIdAndUpdate(
-                {_id},
-                {$inc: {following: -1}}
-            )
-            res.status(200).json({
-                success: true,
-                message:"Unfollowed successfully",
-                data: result,
-            })
-        }else{
-            // If not following before
-            const result = new Follow({
-                user: _id,
-                follow: follow_id
-            })
-            await result.save()
-            await User.findByIdAndUpdate(
-                {_id: follow_id},
-                {$inc: {followers: 1}}
-            )
-            await User.findByIdAndUpdate(
-                {_id},
-                {$inc: {following: 1}}
-            )
-            res.status(200).json({
-                success: true,
-                message:"Followed successfully",
-                data: result,
-            })
-            req.receiver = follow_id
-            req.purpose = 'followed'
-            req.init_on = 'account'
-            req.identity = follow_id
-            next()
-        }
-    } catch (error) {
-        clientError(res, error)
+  const { _id } = req.user;
+  const { follow_id } = req.body;
+  try {
+    const check = await Follow.find(
+      {
+        $and: [{ user: _id }, { follow: follow_id }],
+      },
+      "_id"
+    );
+    // return console.log(check)
+    if (check.length > 0) {
+      // If I already follow account
+      const result = await Follow.deleteOne({ check });
+      await User.findByIdAndUpdate(
+        { _id: follow_id },
+        { $inc: { followers: -1 } }
+      );
+      await User.findByIdAndUpdate({ _id }, { $inc: { following: -1 } });
+      res.status(200).json({
+        success: true,
+        message: "Unfollowed successfully",
+        data: result,
+      });
+    } else {
+      // If not following before
+      const result = new Follow({
+        user: _id,
+        follow: follow_id,
+      });
+      await result.save();
+      await User.findByIdAndUpdate(
+        { _id: follow_id },
+        { $inc: { followers: 1 } }
+      );
+      await User.findByIdAndUpdate({ _id }, { $inc: { following: 1 } });
+      res.status(200).json({
+        success: true,
+        message: "Followed successfully",
+        data: result,
+      });
+      req.receiver = follow_id;
+      req.purpose = "followed";
+      req.init_on = "account";
+      req.identity = follow_id;
+      next();
     }
-}
-
-
-
+  } catch (error) {
+    clientError(res, error);
+  }
+};
 
 // save comment to post
 // @desc: save comment to post || @route: POST /api/users/post/saveComment  || @access:public
 exports.saveComment = async (req, res, next) => {
-    const {_id} = req.user
-    const {post, text, photo, tagged_product, replied_to, replied_under} = req.body;
-    try {
-        const post_owner = await Post.findOne({post})
-        const result = new Comments({
-            user: _id,
-            post,
-            text,
-            photo,
-            tagged_product,
-            replied_to,
-            replied_under
-        })
-        await result.save()
-        await Post.findByIdAndUpdate(
-            {_id:post},
-            {$inc: {comment_count: 1}}
-        )
-        if (typeof replied_to != "undefined") {
-            if(replied_to!=''){
-                const comment_owner = await Comments.findOne({replied_to})
-                await Comments.findByIdAndUpdate(
-                    {_id: replied_to},
-                    {$set:{has_replies: 'yes'}}
-                )
-                if(comment_owner.user!=_id){
-                    req.receiver = comment_owner.user
-                    req.purpose = 'commented'
-                    req.init_on = 'post'
-                    req.identity = replied_to
-                    next()
-                }
-            }
+  const { _id } = req.user;
+  const { post, text, photo, tagged_product, replied_to, replied_under } =
+    req.body;
+  try {
+    const post_owner = await Post.findOne({ post });
+    const result = new Comments({
+      user: _id,
+      post,
+      text,
+      photo,
+      tagged_product,
+      replied_to,
+      replied_under,
+    });
+    await result.save();
+    await Post.findByIdAndUpdate({ _id: post }, { $inc: { comment_count: 1 } });
+    if (typeof replied_to != "undefined") {
+      if (replied_to != "") {
+        const comment_owner = await Comments.findOne({ replied_to });
+        await Comments.findByIdAndUpdate(
+          { _id: replied_to },
+          { $set: { has_replies: "yes" } }
+        );
+        if (comment_owner.user != _id) {
+          req.receiver = comment_owner.user;
+          req.purpose = "commented";
+          req.init_on = "post";
+          req.identity = replied_to;
+          next();
         }
-        res.status(200).json({
-            success: true,
-            message:"Comment saved successfully",
-            data: result,
-        })
-        if(post_owner.user!=_id){
-            req.receiver = post_owner.user
-            req.purpose = 'commented'
-            req.init_on = 'post'
-            req.identity = post
-            next()
-        }
-    } catch (error) {
-        clientError(res, error)
+      }
     }
-}
-
+    res.status(200).json({
+      success: true,
+      message: "Comment saved successfully",
+      data: result,
+    });
+    if (post_owner.user != _id) {
+      req.receiver = post_owner.user;
+      req.purpose = "commented";
+      req.init_on = "post";
+      req.identity = post;
+      next();
+    }
+  } catch (error) {
+    clientError(res, error);
+  }
+};
 
 // share to other account
 // @desc: share to other account || @route: POST /api/users/post/shareItem  || @access:public
 exports.shareItem = async (req, res, next) => {
-    const {_id} = req.user
-    const {receiver, item, item_type} = req.body;
-    try {
-        const result = new Share({
-            sharer: _id,
-            receiver,
-            item,
-            item_type
-        })
-        await result.save()
-        res.status(200).json({
-            success: true,
-            message:"Shared successfully",
-            data: result,
-        })
-        req.receiver = receiver
-        req.purpose = 'shared'
-        req.init_on = 'account'
-        req.identity = receiver
-        next()
-    } catch (error) {
-        clientError(res, error)
-    }
-}
-
+  const { _id } = req.user;
+  const { receiver, item, item_type } = req.body;
+  try {
+    const result = new Share({
+      sharer: _id,
+      receiver,
+      item,
+      item_type,
+    });
+    await result.save();
+    res.status(200).json({
+      success: true,
+      message: "Shared successfully",
+      data: result,
+    });
+    req.receiver = receiver;
+    req.purpose = "shared";
+    req.init_on = "account";
+    req.identity = receiver;
+    next();
+  } catch (error) {
+    clientError(res, error);
+  }
+};
 
 // save a social
 // @desc: save a social || @route: POST /api/users/post/saveSocial  || @access:public
 exports.saveSocial = async (req, res) => {
-    const {_id} = req.user
-    const {site, site_type, social_name, social_link} = req.body;
-    try {
-        const check = await Social.findOne(
-            {
-                $and:[
-                    {user:_id},
-                    {site: site},
-                    {social_name:social_name}
-                ]
-            }
-        )
-        if(check!=null){
-            const result = await Social.findByIdAndUpdate(
-                {
-                    _id:check._id
-                },
-                {
-                    $set:{
-                        social_link: social_link
-                    }
-                }
-            )
-        }else{
-            const result = new Social({
-                user: _id,
-                site,
-                site_type,
-                social_name,
-                social_link
-            })
-            await result.save()
+  const { _id } = req.user;
+  const { site, site_type, social_name, social_link } = req.body;
+  try {
+    const check = await Social.findOne({
+      $and: [{ user: _id }, { site: site }, { social_name: social_name }],
+    });
+    if (check != null) {
+      const result = await Social.findByIdAndUpdate(
+        {
+          _id: check._id,
+        },
+        {
+          $set: {
+            social_link: social_link,
+          },
         }
-        res.status(200).json({
-            success: true,
-            message:"Social Saved successfully"
-        })
-    } catch (error) {
-        clientError(res, error)
+      );
+    } else {
+      const result = new Social({
+        user: _id,
+        site,
+        site_type,
+        social_name,
+        social_link,
+      });
+      await result.save();
     }
-}
+    res.status(200).json({
+      success: true,
+      message: "Social Saved successfully",
+    });
+  } catch (error) {
+    clientError(res, error);
+  }
+};
