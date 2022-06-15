@@ -22,7 +22,9 @@ const {
   getSaved,
   getNotifications,
   getExplore,
-  getMyDiscussions
+  getMyDiscussions,
+  getProductDetails,
+  getTaggedProducts,
 } = require("../../controllers/users/getContollers");
 const { validateUserToken } = require("../../02_utils/common");
 
@@ -49,10 +51,18 @@ router.get("/niches/:skip", validateUserToken, getNiches);
 router.get("/singleNiche", validateUserToken, getSingleNiches);
 
 // get single niches members
-router.get("/singleNicheMembers/:number", validateUserToken, getSingleNichesMembers);
+router.get(
+  "/singleNicheMembers/:number",
+  validateUserToken,
+  getSingleNichesMembers
+);
 
 // get single niches questions
-router.get("/singleNicheQuestions/:number", validateUserToken, getSingleNichesQuestions);
+router.get(
+  "/singleNicheQuestions/:number",
+  validateUserToken,
+  getSingleNichesQuestions
+);
 
 // get Discuss details
 router.get("/getDiscussDetails", validateUserToken, getDiscussDetails);
@@ -76,7 +86,11 @@ router.get("/getSinglePost", validateUserToken, getSinglePost);
 router.get("/getPostComments", validateUserToken, getPostComments);
 
 // get single post with linked word
-router.get("/getPostwithLinkedWord/:number", validateUserToken, getPostwithLinkedWord);
+router.get(
+  "/getPostwithLinkedWord/:number",
+  validateUserToken,
+  getPostwithLinkedWord
+);
 
 // get all items shared to me
 router.get("/getShared/:number", validateUserToken, getShared);
@@ -90,8 +104,10 @@ router.get("/getNotifications/:number", validateUserToken, getNotifications);
 // get explore posts
 router.get("/getExplore/:number", validateUserToken, getExplore);
 
+// get product details
+router.get("/getProductDetails/:id", validateUserToken, getProductDetails);
 
-
-
+// get tagged products for a post
+router.get("/getTaggedProducts/:id", validateUserToken, getTaggedProducts);
 
 module.exports = router;
