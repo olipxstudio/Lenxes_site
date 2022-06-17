@@ -75,7 +75,7 @@ const ProductSchema = new Schema(
         ],
         featured: {
             type: Boolean,
-            default: false,
+            default: true,
         },
         attribute: {
             upc:{
