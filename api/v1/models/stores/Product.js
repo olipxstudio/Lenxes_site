@@ -92,7 +92,8 @@ const ProductSchema = new Schema(
             },
         ],
         customer_input: {
-            type: Boolean
+            type: Boolean,
+            default: false
         },
         input_type: {
             type: String
