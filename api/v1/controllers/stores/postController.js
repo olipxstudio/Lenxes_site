@@ -3,6 +3,7 @@ const Store = require("../../models/stores/Store");
 const Category = require("../../models/stores/Category");
 const Subcategory = require("../../models/stores/Subcategory");
 const Subsetcategory = require("../../models/stores/Subsetcategory");
+const NewPoduct = require("../../models/stores/NewPoduct");
 
 const {
   generateUniqueUserId,
@@ -134,3 +135,34 @@ exports.addSubSetCategory = async (req, res) => {
         clientError(res, error)
     }
 }
+
+// create a product
+// @desc: create a product || @route: POST /api/stores/post/uploadProduct  || @access:public
+exports.uploadProduct = async (req, res) => {
+    const {_id} = req.user
+    const {store_id, name, sku, title, category, subcategory} = req.body;
+    try {
+        const store = new Subsetcategory({
+            user: _id,
+            store: store_id,
+            name,
+            category,
+            subcategory
+        })
+        await store.save()
+        await Subcategory.findOneAndUpdate(
+            {_id:subcategory},
+            {$set:{has_set:'yes'}}
+        )
+        res.status(200).json({
+            success: true,
+            message:"Subsetcategory created successfully",
+            data: store,
+        })
+    } catch (error) {
+        clientError(res, error)
+    }
+}
+
+
+

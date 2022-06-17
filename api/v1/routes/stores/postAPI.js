@@ -5,7 +5,9 @@ const {
     createStore,
     addCategory,
     addSubCategory,
-    addSubSetCategory
+    addSubSetCategory,
+    uploadProduct,
+    NewPoduct
 } = require("../../controllers/stores/postController");
 
 const {
@@ -34,7 +36,11 @@ router.post("/addSubCategory", validateUserToken, addSubCategory);
 // add a store subsetcategory
 router.post("/addSubSetCategory", validateUserToken, addSubSetCategory);
 
+// upload a product
+router.post("/uploadProduct", validateUserToken, uploadProduct);
 
+
+router.post("/NewPoduct", validateUserToken, NewPoduct);
 
 
 
