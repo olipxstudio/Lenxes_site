@@ -40,11 +40,6 @@ router.post("/addSubSetCategory", validateUserToken, addSubSetCategory);
 router.post("/uploadProduct", validateUserToken, uploadProduct);
 
 
-router.post("/NewPoduct", validateUserToken, NewPoduct);
-
-
-
-
 
 
 module.exports = router;

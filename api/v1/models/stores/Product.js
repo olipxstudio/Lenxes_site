@@ -14,8 +14,7 @@ const ProductSchema = new Schema(
             required: true,
         },
         sku:{
-            type: String,
-            default: '001'
+            type: Number,
         },
         title:{
             type: String
@@ -93,17 +92,12 @@ const ProductSchema = new Schema(
             },
         ],
         customer_input: {
-            type: String
+            type: Boolean
         },
         input_type: {
             type: String
+            // text, file, both
         },
-        random_products: [
-            {
-                type: SchemaTypes.ObjectId,
-                ref: "Product",
-            },
-        ],
         stock_control: {
             type: Boolean,
             default: true
