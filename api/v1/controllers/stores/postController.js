@@ -54,7 +54,7 @@ exports.createStore = async (req, res) => {
       data: store,
     });
   } catch (error) {
-    clientError(res, error);
+    serverError(res, error);
   }
 };
 
@@ -84,7 +84,7 @@ exports.addCategory = async (req, res) => {
       data: store,
     });
   } catch (error) {
-    clientError(res, error);
+    serverError(res, error);
   }
 };
 
@@ -111,7 +111,7 @@ exports.addSubCategory = async (req, res) => {
       data: store,
     });
   } catch (error) {
-    clientError(res, error);
+    serverError(res, error);
   }
 };
 
@@ -139,7 +139,7 @@ exports.addSubSetCategory = async (req, res) => {
       data: store,
     });
   } catch (error) {
-    clientError(res, error);
+    serverError(res, error);
   }
 };
 
@@ -172,7 +172,7 @@ exports.addProduct = async (req, res) => {
   });
   let sku = 100;
   if (products.length > 0) {
-    sku = products.length + 1;
+    sku = products.length + 100;
   }
 
   try {
@@ -236,6 +236,7 @@ exports.addProduct = async (req, res) => {
       //     },
       // ]
     });
+
     await new_product.save();
     res.status(200).json({
       success: true,
@@ -243,6 +244,6 @@ exports.addProduct = async (req, res) => {
       data: new_product,
     });
   } catch (error) {
-    clientError(res, error);
+    serverError(res, error);
   }
 };
