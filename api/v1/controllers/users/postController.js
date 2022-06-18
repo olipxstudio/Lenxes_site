@@ -23,6 +23,7 @@ const {
   serverError,
   useValidationError,
   createToken,
+  sendNotification,
 } = require("../../02_utils/common");
 
 // create new user
@@ -293,7 +294,7 @@ exports.Notifications = async (req, res) => {
   const { _id } = req.user;
   const receiver = req.receiver;
   const purpose = req.purpose;
-  const init_on = req.init_on;
+  const init_on = req.init_on; // post, comment, like
   const identity = req.identity;
   try {
     const result = new Notification({
@@ -588,30 +589,41 @@ exports.createDiscuss = async (req, res, next) => {
 // add member to Discuss
 // @desc: add member to Discuss || @route: POST /api/users/post/addDiscussMember  || @access:public
 exports.addDiscussMember = async (req, res, next) => {
-  const { _id } = req.user;
   const { discuss_id, member } = req.body;
+  const { _id } = req.user;
   try {
-    const members = new Discussmembers({
-      discuss: discuss_id,
-      user: member,
+    // add new member to an array of members
+    const result = await Discuss.findOne({
+      _id: discuss_id,
+      members: { $nin: [member] },
     });
-    await members.save();
-    await Discuss.findByIdAndUpdate(
-      { _id: discuss_id },
-      { $inc: { members_count: 1 } }
-    );
-    res.status(200).json({
-      success: true,
-      message: "Discuss member added successfully",
-      data: members,
-    });
-    req.receiver = member;
-    req.purpose = "discuss";
-    req.init_on = "account";
-    req.identity = member;
-    next();
+
+    if (result) {
+      result.members.push(member);
+      await result.save();
+
+      // send notification to new member
+      const notifyObject = {
+        res,
+        sender: _id,
+        receiver: member,
+        purpose: "discuss",
+        init_on: "account",
+        identity: discuss_id,
+      };
+
+      await sendNotification(notifyObject);
+
+      return res.status(200).json({
+        success: true,
+        message: "Member added to Discuss successfully",
+        data: result,
+      });
+    } else {
+      return clientError(res, "Member already added to Discuss");
+    }
   } catch (error) {
-    clientError(res, error);
+    serverError(res, error);
   }
 };
 

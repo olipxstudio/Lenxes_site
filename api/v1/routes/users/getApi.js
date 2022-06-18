@@ -22,9 +22,9 @@ const {
   getSaved,
   getNotifications,
   getExplore,
-  getMyDiscussions,
   getProductDetails,
   getTaggedProducts,
+  getDiscussions,
 } = require("../../controllers/users/getContollers");
 const { validateUserToken } = require("../../02_utils/common");
 
@@ -70,9 +70,6 @@ router.get("/getDiscussDetails", validateUserToken, getDiscussDetails);
 // get Discuss Chats
 router.get("/getDiscussChats", validateUserToken, getDiscussChats);
 
-// get all my discussions
-router.get("/getMyDiscussions", validateUserToken, getMyDiscussions);
-
 // get all my followers
 router.get("/getFollowers/:number", validateUserToken, getFollowers);
 
@@ -109,5 +106,8 @@ router.get("/getProductDetails/:id", validateUserToken, getProductDetails);
 
 // get tagged products for a post
 router.get("/getTaggedProducts/:id", validateUserToken, getTaggedProducts);
+
+// get discussions which user is part of
+router.get("/getDiscussions", validateUserToken, getDiscussions);
 
 module.exports = router;

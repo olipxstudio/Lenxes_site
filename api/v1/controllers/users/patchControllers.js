@@ -11,6 +11,7 @@ exports.updateUserSecurity = async (req, res) => {
     user.password = await User.encryptPassword(password);
     user.username = username;
     user.status = "active";
+
     const updatedUser = await user.save();
 
     res.status(200).json({
@@ -19,6 +20,7 @@ exports.updateUserSecurity = async (req, res) => {
       data: updatedUser,
     });
   } catch (error) {
+    console.log(error);
     serverError(res, error);
   }
 };

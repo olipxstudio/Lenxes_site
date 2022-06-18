@@ -2,12 +2,12 @@ const express = require("express");
 const router = express.Router();
 
 const {
-    createStore,
-    addCategory,
-    addSubCategory,
-    addSubSetCategory,
-    uploadProduct,
-    NewPoduct
+  createStore,
+  addCategory,
+  addSubCategory,
+  addSubSetCategory,
+  NewPoduct,
+  addProduct,
 } = require("../../controllers/stores/postController");
 
 const {
@@ -36,10 +36,7 @@ router.post("/addSubCategory", validateUserToken, addSubCategory);
 // add a store subsetcategory
 router.post("/addSubSetCategory", validateUserToken, addSubSetCategory);
 
-// upload a product
-router.post("/uploadProduct", validateUserToken, uploadProduct);
-
-
-
+// post a product
+router.post("/product/new", validateUserToken, addProduct);
 
 module.exports = router;

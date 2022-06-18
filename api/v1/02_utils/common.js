@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
+const Notification = require("../models/users/Notification");
 
 const serverError = (res, error) => {
   return res.status(500).json({
@@ -57,6 +58,25 @@ const validateUserToken = (req, res, next) => {
   }
 };
 
+// send notification to user
+const sendNotification = async (props) => {
+  const { sender, receiver, purpose, init_on, identity, res } = props;
+  try {
+    const newNotify = new Notification({
+      identity:
+        init_on === "post" ? { post_id: identity } : { account_id: identity },
+      sender,
+      receiver,
+      purpose,
+      init_on,
+    });
+    await newNotify.save();
+    return true;
+  } catch (error) {
+    return serverError(res, error);
+  }
+};
+
 //   export default serverError;
 module.exports = {
   serverError,
@@ -64,4 +84,5 @@ module.exports = {
   createToken,
   useValidationError,
   validateUserToken,
+  sendNotification,
 };

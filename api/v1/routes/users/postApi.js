@@ -109,14 +109,9 @@ router.post(
 router.post("/createDiscuss", validateUserToken, createDiscuss, Notifications);
 
 // add member to a Discuss
-router.post(
-  "/addDiscussMember",
-  validateUserToken,
-  addDiscussMember,
-  Notifications
-);
+router.post("/addDiscussMember", validateUserToken, addDiscussMember);
 
-// add member to a Discuss
+// remove  member from a Discuss
 router.post("/removeDiscussMember", validateUserToken, removeDiscussMember);
 
 // post to a Discuss chat

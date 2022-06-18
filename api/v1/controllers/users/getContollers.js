@@ -14,6 +14,7 @@ const Saved = require("../../models/users/Saved");
 const Notification = require("../../models/users/Notification");
 const { path } = require("@ffmpeg-installer/ffmpeg");
 const Product = require("../../models/stores/Product");
+const DiscussChatNotify = require("../../models/users/DiscussChatNotify");
 
 // get all users
 // @desc: get all users from users || @route: GET /api/users/get/allUsers  || @access:admin
@@ -104,18 +105,10 @@ exports.getRandomUsers = async (req, res) => {
 exports.getProfileDetails = async (req, res) => {
   const { _id } = req.user;
   try {
-    const data = await User.findById(_id);
+    const data = await User.findById(_id, { password: 0 });
     res.status(200).json({
       success: true,
-      username: data.username,
-      fullname: data.fullname,
-      category: data.category,
-      bio: data.bio,
-      website: data.website,
-      photo: data.photo,
-      followers: data.followers,
-      following: data.following,
-      posts: data.posts,
+      data,
     });
   } catch (error) {
     serverError(res, error);
@@ -489,26 +482,6 @@ exports.getExplore = async (req, res) => {
   }
 };
 
-// get explore posts
-// @desc: get explore posts || @route: GET /api/users/get/getMyDiscussions  || @access:users
-exports.getMyDiscussions = async (req, res) => {
-  const { _id } = req.user;
-  try {
-    const discuss = await Discuss.findOne({
-      $and: [{ creator: _id }, { status: "active" }],
-    });
-    const time = discuss.time_remaining;
-    let hour = moment(time).format("Y-m-d hh:mm:ss");
-    // const data = await Post.find({status:'Published'}).limit(20).skip(number).sort("-like_count -comment_count").populate("user","fullname username photo");
-    res.status(200).json({
-      success: true,
-      data: hour,
-    });
-  } catch (error) {
-    serverError(res, error);
-  }
-};
-
 // get product details
 // @desc: get product details || @route: GET /api/users/get/getProductDetails/:id || @access:users
 exports.getProductDetails = async (req, res) => {
@@ -537,6 +510,52 @@ exports.getTaggedProducts = async (req, res) => {
       data,
     });
   } catch (error) {
+    serverError(res, error);
+  }
+};
+
+// get all user discussions and get discusstion chat notifications count for each discussion
+// @desc: get all user discussions and get discusstion chat notifications count for each discussion || @route: GET /api/users/get/getDiscussions || @access:users
+exports.getDiscussions = async (req, res) => {
+  const { _id } = req.user;
+  // get current date and time
+  const currentDate = new Date();
+  const currentTime = currentDate.getTime();
+  const currentTimePlus = currentTime + 1000 * 60 * 60 * 24 * 7;
+  const currentTimePlusDate = new Date(currentTimePlus);
+  const currentTimePlusDateString = currentTimePlusDate.toISOString();
+
+  try {
+    //  get all discussions where user is creator or user is in member and  expires_in is greater than current date
+    const discussions = await Discuss.find({
+      $and: [
+        {
+          $or: [{ creator: _id }, { members: _id }],
+          expires_in: { $lte: currentTimePlusDateString },
+        },
+      ],
+    })
+      .sort("-date")
+      .populate("creator", "fullname username photo")
+      .populate("members", " photo")
+      .populate("discuss_item");
+
+    // for each discussion, get count from DiscussChatNotify where discuss is discussion._id
+    const result = await Promise.all(
+      discussions.map(async (item) => {
+        const { members } = item;
+        const membersLength = members.length;
+        const count = await DiscussChatNotify.findOne({ discuss: item._id });
+        return { ...item._doc, notificationCount: count?.count, membersLength };
+      })
+    );
+
+    res.status(200).json({
+      success: true,
+      result,
+    });
+  } catch (error) {
+    console.log(error);
     serverError(res, error);
   }
 };
