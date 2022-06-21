@@ -61,6 +61,35 @@ const SiteScheme = new Schema({
             type: String,
         }
     },
+    call_to_action:{
+        message:{
+            type: String
+        },
+        enabled:{
+            type: Boolean,
+            default: true
+        },
+        anchor:{
+            type: String
+        },
+        type:{
+            type: String
+            // modal / external / page
+        },
+        onclick:{
+            link:{
+                type: String
+            },
+            screen:{
+                type: SchemaTypes.ObjectId,
+                ref: 'Nav'
+            },
+            modal:{
+                type: SchemaTypes.ObjectId,
+                ref: 'Modal'
+            }
+        }
+    },
     status:{
         type: String,
         default: 'pending',

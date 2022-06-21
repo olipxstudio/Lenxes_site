@@ -32,27 +32,37 @@ exports.createStore = async (req, res) => {
     account_name,
   } = req.body;
   try {
-    const store = new Store({
-      user: _id,
-      shop_name,
-      motto,
-      location,
-      address,
-      phone,
-      email,
-      employee_size,
-      access_pin,
-      business_type,
-      bank,
-      account_number,
-      account_name,
-    });
-    await store.save();
-    res.status(200).json({
-      success: true,
-      message: "Store created successfully",
-      data: store,
-    });
+      // Check if store name exist
+      const check_name = await Store.findOne({shop_name:shop_name})
+      if(!check_name){
+        const check_email = await Store.findOne({email:email})
+        if(check_email){
+            return clientError(res, "Email already exist.")
+        }
+        const store = new Store({
+            user: _id,
+            shop_name,
+            motto,
+            location,
+            address,
+            phone,
+            email,
+            employee_size,
+            access_pin,
+            business_type,
+            bank,
+            account_number,
+            account_name,
+          });
+          await store.save();
+          res.status(200).json({
+            success: true,
+            message: "Store created successfully",
+            data: store,
+          });
+      }else{
+          clientError(res, "Store Name already exist.")
+      }
   } catch (error) {
     serverError(res, error);
   }
