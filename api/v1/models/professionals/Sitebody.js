@@ -32,7 +32,7 @@ const SitebodySchema = new Schema(
         },
         type:{
             type: String
-            // banner, skillset
+            // banner, skillset, experience, projects, text, links, video, team, testimonials, values, connect, downloadable, partners, stats, hcards, section, services
         },
         title:{
             type: String,
@@ -75,6 +75,9 @@ const SitebodySchema = new Schema(
             }
         },
         banner: {
+            type:{
+                type: String // text, banner
+            },
             photo:{
                 type:{
                     type: String,
@@ -82,14 +85,11 @@ const SitebodySchema = new Schema(
                 },
                 url:{
                     type: String
-                }
-            },
-            type:{
-                type: String // text, banner
-            },
-            height:{
-                type: String,
-                default: 'normal' //normal / large
+                },
+                height:{
+                    type: String,
+                    default: 'normal' //normal / large
+                },
             },
             properties:{
                 font_size:{

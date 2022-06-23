@@ -1,20 +1,16 @@
 const User = require("../../models/users/User");
 const Post = require("../../models/users/Post");
 const Like = require("../../models/users/Like");
-const Notification = require("../../models/users/Notification");
 const Saved = require("../../models/users/Saved");
 const Niche = require("../../models/users/Niche");
-const Nichemember = require("../../models/users/Nichemember");
 const Nichefollow = require("../../models/users/Nichefollow");
 const Nichequestion = require("../../models/users/Nichequestion");
 const Discuss = require("../../models/users/Discuss");
-const Discussmembers = require("../../models/users/Discussmembers");
 const DiscussChat = require("../../models/users/DiscussChat");
 const DiscussChatNotify = require("../../models/users/DiscussChatNotify");
 const Follow = require("../../models/users/Follow");
 const Comments = require("../../models/users/Comments");
 const Share = require("../../models/users/Share");
-const Store = require("../../models/stores/Store");
 const Social = require("../../models/users/Social");
 
 const {
@@ -172,6 +168,19 @@ exports.sendPhoto = async (req, res) => {
   });
 };
 
+// send photo
+// @desc: send photo to user || @route: POST /api/users/post/uploadPdf  || @access:public
+exports.sendPdf = async (req, res) => {
+    const pdf = req.pdfUrl;
+  
+    return res.status(200).json({
+      success: true,
+      data: {
+        pdf,
+      },
+    });
+};
+
 // create new post
 // @desc: create new post || @route: POST /api/users/post/createPost  || @access:public
 exports.createPost = async (req, res) => {
@@ -230,7 +239,7 @@ exports.createPost = async (req, res) => {
 
 // save new like
 // @desc: save new like || @route: POST /api/users/post/like  || @access:public
-exports.RegisterLikes = async (req, res, next) => {
+exports.RegisterLikes = async (req, res) => {
   const { _id } = req.user;
   const { post_id, post_type } = req.body;
   try {
@@ -272,16 +281,20 @@ exports.RegisterLikes = async (req, res, next) => {
         { _id: post_id },
         { $inc: { like_count: 1 } }
       );
+      const notify = {
+            sender:_id,
+            receiver:send_to,
+            purpose:'liked',
+            init_on:'post',
+            identity:post_id,
+            res
+        }
+        await sendNotification(notify);
       res.status(200).json({
         success: true,
         message: "Post liked successfully",
         data: result,
       });
-      req.receiver = send_to;
-      req.purpose = "liked";
-      req.init_on = "post";
-      req.identity = post_id;
-      next();
     }
   } catch (error) {
     return clientError(res, error);
@@ -290,26 +303,26 @@ exports.RegisterLikes = async (req, res, next) => {
 
 // save new notification
 // @desc: save new notification || @route: POST /api/users/post/notification  || @access:app
-exports.Notifications = async (req, res) => {
-  const { _id } = req.user;
-  const receiver = req.receiver;
-  const purpose = req.purpose;
-  const init_on = req.init_on; // post, comment, like
-  const identity = req.identity;
-  try {
-    const result = new Notification({
-      identity:
-        init_on === "post" ? { post_id: identity } : { account_id: identity },
-      sender: _id,
-      receiver,
-      purpose,
-      init_on,
-    });
-    await result.save();
-  } catch (error) {
-    return clientError(res, error);
-  }
-};
+// exports.Notifications = async (req, res) => {
+//   const { _id } = req.user;
+//   const receiver = req.receiver;
+//   const purpose = req.purpose;
+//   const init_on = req.init_on; // post, comment, like
+//   const identity = req.identity;
+//   try {
+//     const result = new Notification({
+//       identity:
+//         init_on === "post" ? { post_id: identity } : { account_id: identity },
+//       sender: _id,
+//       receiver,
+//       purpose,
+//       init_on,
+//     });
+//     await result.save();
+//   } catch (error) {
+//     return clientError(res, error);
+//   }
+// };
 
 // save post to user saved
 // @desc: save post to user saved || @route: POST /api/users/post/saved  || @access:public
@@ -378,27 +391,22 @@ exports.NewNiche = async (req, res) => {
 
 // add member to niche
 // @desc: add member to niche || @route: POST /api/users/post/addNicheMember  || @access:public
-exports.AddMembertoNiche = async (req, res, next) => {
+exports.AddMembertoNiche = async (req, res) => {
   const { _id } = req.user;
   const { member_id, niche_id } = req.body;
   try {
-    const check = await Nichemember.find(
-      {
-        $and: [{ member: member_id }, { niche: niche_id }],
-      },
-      "_id"
-    );
+    const check = await Niche.findOne({
+        _id: niche_id,
+        members: { $nin: [member_id] },
+    });
     if (check.length > 0) {
       // If member is found
-      const result = await Nichemember.deleteOne({ check });
-      await Niche.findOneAndUpdate(
-        { _id: niche_id },
-        { $inc: { members_count: -1 } }
-      );
+      check.members.pull(member_id);
+      await check.save();
       res.status(200).json({
         success: true,
         message: "Member removed successfully",
-        data: result,
+        data: check,
       });
     } else {
       // If niche is pending
@@ -408,27 +416,22 @@ exports.AddMembertoNiche = async (req, res, next) => {
         },
         { $set: { status: "active" } }
       );
-      await Niche.findOneAndUpdate(
-        { _id: niche_id },
-        { $inc: { members_count: 1 } }
-      );
-      // If not member before
-      const result = new Nichemember({
-        niche: niche_id,
-        member: member_id,
-        niche_owner: _id,
-      });
-      await result.save();
+      check.members.push(member_id);
+      await check.save();
+      const notify = {
+            sender:_id,
+            receiver:member_id,
+            purpose:'membertoniche',
+            init_on:'account',
+            identity:member_id,
+            res
+        }
+        await sendNotification(notify);
       res.status(200).json({
         success: true,
         message: "Member added successfully",
-        data: result,
+        data: check,
       });
-      req.receiver = member_id;
-      req.purpose = "membertoniche";
-      req.init_on = "account";
-      req.identity = member_id;
-      next();
     }
   } catch (error) {
     clientError(res, error);
@@ -499,7 +502,7 @@ exports.nicheQuestion = async (req, res) => {
 
 // like and unlike niche question
 // @desc: like and unlike niche question || @route: POST /api/users/post/likeUnlikeNicheQuestion  || @access:public
-exports.likeUnlikeNicheQuestion = async (req, res, next) => {
+exports.likeUnlikeNicheQuestion = async (req, res) => {
   const { _id } = req.user;
   const { question_id } = req.body;
   try {
@@ -536,16 +539,20 @@ exports.likeUnlikeNicheQuestion = async (req, res, next) => {
         { _id: question_id },
         { $inc: { like_count: 1 } }
       );
+      const notify = {
+            sender:_id,
+            receiver:owner_id,
+            purpose:'liked',
+            init_on:'post',
+            identity:question_id,
+            res
+        }
+        await sendNotification(notify);
       res.status(200).json({
         success: true,
         message: "Liked Niche question successfully",
         data: result,
       });
-      req.receiver = owner_id;
-      req.purpose = "liked";
-      req.init_on = "post";
-      req.identity = question_id;
-      next();
     }
   } catch (error) {
     clientError(res, error);
@@ -554,7 +561,7 @@ exports.likeUnlikeNicheQuestion = async (req, res, next) => {
 
 // create Discuss
 // @desc: create Discuss || @route: POST /api/users/post/createDiscuss  || @access:public
-exports.createDiscuss = async (req, res, next) => {
+exports.createDiscuss = async (req, res) => {
   const { _id } = req.user;
   const { discuss_item, type, member_one } = req.body;
   try {
@@ -562,25 +569,24 @@ exports.createDiscuss = async (req, res, next) => {
       creator: _id,
       discuss_item,
       type,
-      members_count: 1,
+      members: member_one,
       status: "active",
     });
     await result.save();
-    const members = new Discussmembers({
-      discuss: result._id,
-      user: member_one,
-    });
-    await members.save();
+    const notify = {
+        sender:_id,
+        receiver:member_one,
+        purpose:'discuss',
+        init_on:'account',
+        identity:member_one,
+        res
+    }
+    await sendNotification(notify);
     res.status(200).json({
       success: true,
       message: "Discuss created successfully",
       data: result,
     });
-    req.receiver = member_one;
-    req.purpose = "discuss";
-    req.init_on = "account";
-    req.identity = member_one;
-    next();
   } catch (error) {
     clientError(res, error);
   }
@@ -588,7 +594,7 @@ exports.createDiscuss = async (req, res, next) => {
 
 // add member to Discuss
 // @desc: add member to Discuss || @route: POST /api/users/post/addDiscussMember  || @access:public
-exports.addDiscussMember = async (req, res, next) => {
+exports.addDiscussMember = async (req, res) => {
   const { discuss_id, member } = req.body;
   const { _id } = req.user;
   try {
@@ -633,11 +639,11 @@ exports.removeDiscussMember = async (req, res) => {
   const { _id } = req.user;
   const { discuss_id, member } = req.body;
   try {
-    await Discussmembers.findOneAndDelete({ user: member });
-    await Discuss.findByIdAndUpdate(
-      { _id: discuss_id },
-      { $inc: { members_count: -1 } }
-    );
+    const result = await Discuss.findOne({
+        _id: discuss_id,
+    });
+    result.members.pull(member);
+    await result.save();
     res.status(200).json({
       success: true,
       message: "Discuss member removed successfully",
@@ -673,13 +679,13 @@ exports.addDicsussChat = async (req, res, next) => {
         attached_type === "post" ? { post: attached } : { product: attached },
     });
     result.save();
+    req.discuss = discuss_id;
+    next();
     res.status(200).json({
       success: true,
       message: "Chat sent successfully",
       data: result,
     });
-    req.discuss = discuss_id;
-    next();
   } catch (error) {
     clientError(res, error);
   }
@@ -689,11 +695,13 @@ exports.addDicsussChat = async (req, res, next) => {
 exports.sendDiscussNotification = async (req, res) => {
   const discuss = req.discuss;
   try {
-    const data = await Discussmembers.find({
-      $and: [{ discuss: discuss }, { status: "active" }],
+    const data = await Discuss.findOne({
+      $and: [{ _id: discuss }, { status: "active" }],
     });
+    const members = data.members;
     const result = await Promise.all(
-      data.map(async (item) => {
+      members.map(async (item) => {
+          return item;
         const get = await DiscussChatNotify.findOneAndUpdate(
           {
             $and: [{ discuss: discuss }, { receiver: item.user }],
@@ -713,6 +721,7 @@ exports.sendDiscussNotification = async (req, res) => {
         }
       })
     );
+    console.log(result)
   } catch (error) {
     clientError(res, error);
   }
@@ -720,7 +729,7 @@ exports.sendDiscussNotification = async (req, res) => {
 
 // follow or unfollow an account
 // @desc: follow or unfollow an account || @route: POST /api/users/post/followOrUnfollow  || @access:public
-exports.followOrUnfollow = async (req, res, next) => {
+exports.followOrUnfollow = async (req, res) => {
   const { _id } = req.user;
   const { follow_id } = req.body;
   try {
@@ -756,16 +765,20 @@ exports.followOrUnfollow = async (req, res, next) => {
         { $inc: { followers: 1 } }
       );
       await User.findByIdAndUpdate({ _id }, { $inc: { following: 1 } });
+      const notifyObject = {
+        res,
+        sender: _id,
+        receiver: follow_id,
+        purpose: "followed",
+        init_on: "account",
+        identity: follow_id,
+      };
+      await sendNotification(notifyObject);
       res.status(200).json({
         success: true,
         message: "Followed successfully",
         data: result,
       });
-      req.receiver = follow_id;
-      req.purpose = "followed";
-      req.init_on = "account";
-      req.identity = follow_id;
-      next();
     }
   } catch (error) {
     clientError(res, error);
@@ -774,7 +787,7 @@ exports.followOrUnfollow = async (req, res, next) => {
 
 // save comment to post
 // @desc: save comment to post || @route: POST /api/users/post/saveComment  || @access:public
-exports.saveComment = async (req, res, next) => {
+exports.saveComment = async (req, res) => {
   const { _id } = req.user;
   const { post, text, photo, tagged_product, replied_to, replied_under } =
     req.body;
@@ -799,26 +812,34 @@ exports.saveComment = async (req, res, next) => {
           { $set: { has_replies: "yes" } }
         );
         if (comment_owner.user != _id) {
-          req.receiver = comment_owner.user;
-          req.purpose = "commented";
-          req.init_on = "post";
-          req.identity = replied_to;
-          next();
+            const notifyObject = {
+                res,
+                sender: _id,
+                receiver: comment_owner.user,
+                purpose: "commented",
+                init_on: "post",
+                identity: replied_to,
+            };
+            await sendNotification(notifyObject);
         }
       }
+    }
+    if (post_owner.user != _id) {
+        const notifyObject = {
+            res,
+            sender: _id,
+            receiver: post_owner.user,
+            purpose: "commented",
+            init_on: "post",
+            identity: post,
+        };
+        await sendNotification(notifyObject);
     }
     res.status(200).json({
       success: true,
       message: "Comment saved successfully",
       data: result,
     });
-    if (post_owner.user != _id) {
-      req.receiver = post_owner.user;
-      req.purpose = "commented";
-      req.init_on = "post";
-      req.identity = post;
-      next();
-    }
   } catch (error) {
     clientError(res, error);
   }
@@ -826,7 +847,7 @@ exports.saveComment = async (req, res, next) => {
 
 // share to other account
 // @desc: share to other account || @route: POST /api/users/post/shareItem  || @access:public
-exports.shareItem = async (req, res, next) => {
+exports.shareItem = async (req, res) => {
   const { _id } = req.user;
   const { receiver, item, item_type } = req.body;
   try {
@@ -837,16 +858,20 @@ exports.shareItem = async (req, res, next) => {
       item_type,
     });
     await result.save();
+    const notifyObject = {
+        res,
+        sender: _id,
+        receiver: receiver,
+        purpose: "shared",
+        init_on: "account",
+        identity: receiver,
+    };
+    await sendNotification(notifyObject);
     res.status(200).json({
       success: true,
       message: "Shared successfully",
       data: result,
     });
-    req.receiver = receiver;
-    req.purpose = "shared";
-    req.init_on = "account";
-    req.identity = receiver;
-    next();
   } catch (error) {
     clientError(res, error);
   }

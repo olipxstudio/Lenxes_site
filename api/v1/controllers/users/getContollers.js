@@ -3,7 +3,6 @@ const User = require("../../models/users/User");
 const { clientError, serverError } = require("../../02_utils/common");
 const Post = require("../../models/users/Post");
 const Niche = require("../../models/users/Niche");
-const Nichemember = require("../../models/users/Nichemember");
 const Nichequestion = require("../../models/users/Nichequestion");
 const Discuss = require("../../models/users/Discuss");
 const DiscussChat = require("../../models/users/DiscussChat");
@@ -141,34 +140,13 @@ exports.getNiches = async (req, res) => {
     })
       .limit(10)
       .skip(number)
-      .populate("creator", "fullname username photo");
-
-    // for each niche get 5 members and place under each niche result
-    const result = await Promise.all(
-      data.map(async (niche) => {
-        // find limit of 5 nichemembers where niche = niche._id and status = active
-        const members = await Nichemember.find({
-          $and: [{ niche: niche._id }, { status: "active" }],
-        })
-          .limit(5)
-          .populate("member", "fullname username photo");
-
-        // clean up the members array
-        const membersList = members.map((member) => {
-          return {
-            userId: member.member._id,
-            username: member.member.username,
-            fullname: member.member.fullname,
-            photo: member.member.photo,
-          };
-        });
-        return { ...niche.toJSON(), members: membersList };
-      })
-    );
+      .populate("creator", "fullname username photo")
+      .populate("members", "fullname username photo");
+    
     res.status(200).json({
       success: true,
-      data: result,
-      count: result.length,
+      count: data.length,
+      data: data
     });
   } catch (error) {
     serverError(res, error);

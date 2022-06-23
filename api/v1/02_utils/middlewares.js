@@ -58,16 +58,9 @@ exports.validateUserEmail = (req, res, next) => {
 exports.checkImage = async (req, res, next) => {
   const { image } = req.files;
   if (image) {
-    // req.image = image;
-
     if (!image.mimetype.startsWith("image")) {
       return clientError(res, "Please upload a valid image");
     }
-
-    // if (image.size > process.env.MAX_FILE_UPLOAD) {
-    //   return clientError(res, "Please upload an image less than 5mb");
-    // }
-
     req.image = image;
     next();
   } else {
@@ -84,7 +77,7 @@ exports.checkVideo = async (req, res, next) => {
       return clientError(res, "Please upload a valid video");
     }
 
-    if (video.size > process.env.MAX_FILE_UPLOAD) {
+    if (video.size > process.env.MAX_VIDEO_UPLOAD) {
       return clientError(res, "Please upload a video less than 10mb");
     }
 
@@ -95,10 +88,79 @@ exports.checkVideo = async (req, res, next) => {
   }
 };
 
+// create a middleware to upload pdf
+exports.checkPdf = async (req, res, next) => {
+    const { pdf } = req.files;
+    if (pdf) {
+      if (pdf.mimetype != "application/pdf") {
+        return clientError(res, "Please upload a valid PDF File");
+      }
+      req.pdf = pdf;
+      next();
+    } else {
+      return clientError(res, "Please upload a PDF File");
+    }
+};
+ 
+// upload image from req.image with express-fileupload the send image url through req.imageUrl
+exports.uploadPdf = async (req, res, next) => {
+    const { pdf } = req;
+    const saveto = req.params.saveto;
+    
+    const social = '../../../public/uploads/pdf_downloadables/';
+    const stores = '../../../public/uploads/store/pdf_downloadables/';
+    const site = '../../../public/uploads/professionals/pdf_downloadables/';
+    
+    let directPhoto;
+    if(saveto=='social'){
+      directPhoto = social;
+    }else if(saveto=='store'){
+      directPhoto = stores;
+    }else if(saveto=='site'){
+      directPhoto = site;
+    }else{
+      return clientError(res, "PDF Path not found");
+    }
+    // return res.json({pdf})
+    const fileName = pdf.name;
+    const extension = path.extname(fileName);
+    const md5 = pdf.md5;
+    const newLocal = await currentDateTime();
+  
+    const imageName = `pdf${md5}${newLocal}${extension}`;
+    const imagePath = path.join(__dirname, directPhoto);
+    const pdfPathName = `${imageName}`;
+
+    // save pdf to disk
+    pdf.mv(imagePath + imageName, async (err) => {
+      if (err) {
+        return serverError(res, err);
+      }
+      req.pdfUrl = pdfPathName;
+      next();
+    });
+};
+  
 // upload image from req.image with express-fileupload the send image url through req.imageUrl
 exports.uploadImage = async (req, res, next) => {
   const { image } = req;
-
+  const saveto = req.params.saveto;
+  
+  const social = '../../../public/uploads/';
+  const stores = '../../../public/uploads/store/';
+  const site = '../../../public/uploads/professionals/';
+  
+  let directPhoto;
+  if(saveto=='social'){
+    directPhoto = social;
+  }else if(saveto=='store'){
+    directPhoto = stores;
+  }else if(saveto=='site'){
+    directPhoto = site;
+  }else{
+    return clientError(res, "Image Path not found");
+  }
+  
   const fileName = image.name;
   const extension = path.extname(fileName);
   const md5 = image.md5;
@@ -106,7 +168,7 @@ exports.uploadImage = async (req, res, next) => {
 
   // resize image to three different sizes
   const imageName = `image${md5}${newLocal}`;
-  const imagePath = path.join(__dirname, "../../../public/uploads/");
+  const imagePath = path.join(__dirname, directPhoto);
 
   const imagePathSmall = path.join(imagePath, "small/");
   const imagePathMedium = path.join(imagePath, "medium/");
@@ -163,22 +225,32 @@ exports.uploadImage = async (req, res, next) => {
 // upload video from req.video to video folder and send video url through req.videoUrl
 exports.uploadVideo = async (req, res, next) => {
   const { video } = req;
-
+  const saveto = req.params.saveto;
+  
+  const social = '../../../public/uploads/videos/';
+  const stores = '../../../public/uploads/store/videos/';
+  const site = '../../../public/uploads/professionals/videos/';
+  
+  let directPhoto;
+  if(saveto=='social'){
+    directPhoto = social;
+  }else if(saveto=='store'){
+    directPhoto = stores;
+  }else if(saveto=='site'){
+    directPhoto = site;
+  }else{
+    return clientError(res, "Video Path not found");
+  }
+  
   const fileName = video.name;
   const extension = path.extname(fileName);
   const md5 = video.md5;
   const newLocal = await currentDateTime();
 
-  // get first frame of video and save it as image
-
-  // resize image to three different sizes
   const videoName = `video${md5}${newLocal}${extension}`;
-  const videoPath = path.join(__dirname, "../../../public/uploads/videos/");
+  const videoPath = path.join(__dirname, directPhoto);
 
   const videoPathName = `${videoName}`;
-  const videoPathUrl = videoPathName;
-
-  path.join(videoPath, videoPathName);
 
   // create folder if not exists
   if (!fs.existsSync(videoPath)) {
@@ -191,21 +263,47 @@ exports.uploadVideo = async (req, res, next) => {
       return serverError(res, err);
     }
 
-    req.videoUrl = videoPathUrl;
+    req.videoUrl = videoPathName;
     next();
   });
 };
 
 // get video thumbnail and save it to disk
 exports.getVideoThumbnail = async (req, res, next) => {
+  const { videoUrl } = req;
+  const saveto = req.params.saveto;
+  
+  const social = '../../../public/uploads/videos/';
+  const stores = '../../../public/uploads/store/videos/';
+  const site = '../../../public/uploads/professionals/videos/';
+  
+  const socialThumb = '../../../public/uploads/thumbs/';
+  const storesThumb = '../../../public/uploads/store/thumbs/';
+  const siteThumb = '../../../public/uploads/professionals/thumbs/';
+  
+  let directPhoto;
+  let directThumb;
+  if(saveto=='social'){
+    directPhoto = social;
+    directThumb = socialThumb;
+  }else if(saveto=='store'){
+    directPhoto = stores;
+    directThumb = storesThumb;
+  }else if(saveto=='site'){
+    directPhoto = site;
+    directThumb = siteThumb;
+  }else{
+    return clientError(res, "Video Path not found");
+  }
+  
   try {
-    const { videoUrl } = req;
-    const videoPath = path.join(__dirname, "../../../public/uploads/videos/");
+    const videoPath = path.join(__dirname, directPhoto);
     const videoName = videoUrl.split("/")[videoUrl.split("/").length - 1];
     const videoPathName = `${videoName}`;
     const videoPathUrl = videoPathName;
 
     const video = ffmpeg(videoPath + videoPathName);
+    // return res.json({video});
     const image = video.takeScreenshots({
       count: 1,
       timemarks: ["0"],
@@ -216,7 +314,7 @@ exports.getVideoThumbnail = async (req, res, next) => {
     image.on("end", async () => {
       const imagePath = path.join(
         __dirname,
-        "../../../public/uploads/thumbnails/"
+        directThumb
       );
       const imageName = `thumbnail-${videoName}`;
       const imagePathName = `${imageName}`;

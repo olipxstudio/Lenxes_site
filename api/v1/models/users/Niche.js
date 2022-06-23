@@ -27,10 +27,10 @@ const NicheSchema = new Schema({
         type: Number,
         default: 0
     },
-    members_count:{
-        type: Number,
-        default: 0
-    },
+    members:[{
+        type: SchemaTypes.ObjectId,
+        ref: 'User'
+    }],
     status:{
         type: String,
         default: 'pending'

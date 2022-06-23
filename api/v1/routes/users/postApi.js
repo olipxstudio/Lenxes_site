@@ -9,7 +9,6 @@ const {
   sendVideo,
   createPost,
   RegisterLikes,
-  Notifications,
   Saved,
   NewNiche,
   AddMembertoNiche,
@@ -25,6 +24,7 @@ const {
   saveComment,
   shareItem,
   saveSocial,
+  sendPdf
 } = require("../../controllers/users/postController");
 
 const {
@@ -37,6 +37,8 @@ const {
   uploadImage,
   checkImage,
   getVideoThumbnail,
+  checkPdf,
+  uploadPdf,
 } = require("../../02_utils/middlewares");
 
 const { validateUserToken } = require("../../02_utils/common");
@@ -53,17 +55,27 @@ router.post("/login", checkIfIsUser, loginUser);
 // reset password request
 router.post("/forgotPassword", verifyEmail, forgotPassword);
 
-// upload photo
+// upload photo - saveto would either save to social folders, store folders or professionals folders
 router.post(
-  "/uploadPhoto",
+  "/uploadPhoto/:saveto",
   validateUserToken,
   checkImage,
   uploadImage,
   sendPhoto
 );
-// upload video
+
+// upload photo - saveto would either save to social folders, store folders or professionals folders
 router.post(
-  "/uploadVideo",
+    "/uploadPdf/:saveto",
+    validateUserToken,
+    checkPdf,
+    uploadPdf,
+    sendPdf
+);
+
+// upload video - saveto would either save to social folders, store folders or professionals folders
+router.post(
+  "/uploadVideo/:saveto",
   validateUserToken,
   checkVideo,
   uploadVideo,
@@ -75,7 +87,7 @@ router.post(
 router.post("/new-post", validateUserToken, createPost);
 
 // save likes for posts and products
-router.post("/like", validateUserToken, RegisterLikes, Notifications);
+router.post("/like", validateUserToken, RegisterLikes);
 
 // save post to user saved
 router.post("/saved", validateUserToken, Saved);
@@ -87,8 +99,7 @@ router.post("/createNiche", validateUserToken, NewNiche);
 router.post(
   "/addNicheMember",
   validateUserToken,
-  AddMembertoNiche,
-  Notifications
+  AddMembertoNiche
 );
 
 // follow and unfollow a niche
@@ -101,12 +112,11 @@ router.post("/nicheQuestion", validateUserToken, nicheQuestion);
 router.post(
   "/likeUnlikeNicheQuestion",
   validateUserToken,
-  likeUnlikeNicheQuestion,
-  Notifications
+  likeUnlikeNicheQuestion
 );
 
 // Create a Discuss
-router.post("/createDiscuss", validateUserToken, createDiscuss, Notifications);
+router.post("/createDiscuss", validateUserToken, createDiscuss);
 
 // add member to a Discuss
 router.post("/addDiscussMember", validateUserToken, addDiscussMember);
@@ -126,15 +136,14 @@ router.post(
 router.post(
   "/followOrUnfollow",
   validateUserToken,
-  followOrUnfollow,
-  Notifications
+  followOrUnfollow
 );
 
 // create a comment
-router.post("/saveComment", validateUserToken, saveComment, Notifications);
+router.post("/saveComment", validateUserToken, saveComment);
 
 // Share to other account
-router.post("/shareItem", validateUserToken, shareItem, Notifications);
+router.post("/shareItem", validateUserToken, shareItem);
 
 // save or update social
 router.post("/saveSocial", validateUserToken, saveSocial);
