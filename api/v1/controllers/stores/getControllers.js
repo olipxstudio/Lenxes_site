@@ -125,3 +125,76 @@ exports.getProducts = async (req, res) => {
     serverError(res, error);
   }
 };
+
+
+// @desc: get products from category, sub and set || @route: GET /api/stores/get/getCatProducts/path(cat,sub,set)/number - 12 per time  || @access:user
+exports.getCatProducts = async (req, res) => {
+    const { _id } = req.user;
+    const { path, number } = req.params;
+    const { catsubset_id, store } = req.body;
+    try {
+        let query;
+        if(path=='cat'){
+            query = {"category":catsubset_id}
+        }else if(path=='sub'){
+            query = {"subcategory":catsubset_id}
+        }else{
+            query = {"subsetcategory":catsubset_id}
+        }
+        const result = await Product.find(
+            {
+                $and:[
+                    {status: 'active'},
+                    {stock_control:true},
+                    {store:store},
+                    query
+                ]
+            },
+            "user store title photo condition variants"
+        ).sort("-createdAt")
+        .limit(12)
+        .skip(number)
+        .populate("user","fullname username photo")
+        .populate("store","shop_name location");
+       
+      res.status(200).json({
+        success: true,
+        count: result?.length,
+        data: result
+      });
+    } catch (error) {
+      serverError(res, error);
+    }
+};
+
+
+// @desc: get store new arrivals products || @route: GET /api/stores/get/getNewArrivals/number - 6 per time  || @access:user
+exports.getNewArrivals = async (req, res) => {
+    const { _id } = req.user;
+    const { number } = req.params;
+    const { store } = req.body;
+    try {
+        const result = await Product.find(
+            {
+                $and:[
+                    {status: 'active'},
+                    {stock_control:true},
+                    {store:store}
+                ]
+            },
+            "user store title photo condition variants"
+        ).sort("-createdAt")
+        .limit(6)
+        .skip(number)
+        .populate("user","fullname username photo")
+        .populate("store","shop_name location");
+       
+      res.status(200).json({
+        success: true,
+        count: result?.length,
+        data: result
+      });
+    } catch (error) {
+      serverError(res, error);
+    }
+};

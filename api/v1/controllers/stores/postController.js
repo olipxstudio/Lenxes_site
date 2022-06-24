@@ -257,3 +257,31 @@ exports.addProduct = async (req, res) => {
     serverError(res, error);
   }
 };
+
+
+// @desc: make an order - save order || @route: POST /api/stores/post/makeOrder  || @access:public
+exports.makeOrder = async (req, res) => {
+    const { _id } = req.user;
+    const { store_id, name, category } = req.body;
+    try {
+      const store = new Subcategory({
+        user: _id,
+        store: store_id,
+        name,
+        category,
+      });
+      await store.save();
+      await Category.findOneAndUpdate(
+        { _id: category },
+        { $set: { has_sub: "yes" } }
+      );
+      res.status(200).json({
+        success: true,
+        message: "Subcategory created successfully",
+        data: store,
+      });
+    } catch (error) {
+      serverError(res, error);
+    }
+  };
+  

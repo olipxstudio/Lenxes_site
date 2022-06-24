@@ -24,7 +24,9 @@ const {
   saveComment,
   shareItem,
   saveSocial,
-  sendPdf
+  sendPdf,
+  createCollection,
+  saveToCart
 } = require("../../controllers/users/postController");
 
 const {
@@ -147,5 +149,11 @@ router.post("/shareItem", validateUserToken, shareItem);
 
 // save or update social
 router.post("/saveSocial", validateUserToken, saveSocial);
+
+// create a cart collection
+router.post("/createCollection", validateUserToken, createCollection);
+
+// save product to cart under collection
+router.post("/saveToCart", validateUserToken, saveToCart);
 
 module.exports = router;

@@ -14,6 +14,8 @@ const Notification = require("../../models/users/Notification");
 const { path } = require("@ffmpeg-installer/ffmpeg");
 const Product = require("../../models/stores/Product");
 const DiscussChatNotify = require("../../models/users/DiscussChatNotify");
+const Cart = require("../../models/users/Cart");
+const CartCollection = require("../../models/users/CartCollection");
 
 // get all users
 // @desc: get all users from users || @route: GET /api/users/get/allUsers  || @access:admin
@@ -300,10 +302,7 @@ exports.getSinglePost = async (req, res) => {
   const { _id } = req.user;
   const post_id = req.body;
   try {
-    const data = await Post.findOne({ post_id }).populate(
-      "user",
-      "fullname username photo"
-    );
+    const data = await Post.findOne({ post_id }).populate("user","fullname username photo").populate("tagged_product","title photo category condition variants");
     res.status(200).json({
       success: true,
       data,
@@ -537,3 +536,177 @@ exports.getDiscussions = async (req, res) => {
     serverError(res, error);
   }
 };
+
+
+// @desc: get products by search that belongs to me to be tagged || @route: GET /api/users/get/getProductToTagged || @access:users
+exports.getProductToTagged = async (req, res) => {
+    const { _id } = req.user;
+    const { keyword } = req.body;
+    try {
+        const result = await Product.find(
+            {
+                $and: [
+                    {title: new RegExp('.*' + keyword + '.*', 'i')},
+                    {user: _id},
+                    {stock_control: true},
+                    {status: 'active'}
+                ],
+            },
+            "title photo category condition variants"
+        )
+        .populate("category", "name");
+        
+        res.status(200).json({
+            success: true,
+            result,
+        });
+    } catch (error) {
+        console.log(error);
+        serverError(res, error);
+    }
+}
+
+
+// @desc: get single product details || @route: GET /api/users/get/getSingleProduct || @access:users
+exports.getSingleProduct = async (req, res) => {
+    const { _id } = req.user;
+    const { product_id } = req.body;
+    try {
+        const result = await Product.findOne(
+            {
+                $and: [
+                    {_id: product_id},
+                    {stock_control: true},
+                    {status: 'active'}
+                ],
+            }
+        )
+        .populate("category", "name")
+        .populate("subcategory", "name")
+        .populate("subsetcategory", "name")
+        .populate("user", "fullname photo username")
+        .populate("store", "shop_name");
+        const others = await Product.find(
+            {
+                $and: [
+                    {user: result.user._id},
+                    {stock_control: true},
+                    {status: 'active'},
+                    {_id: {$nin: product_id}}
+                ],
+            },
+            "title photo description variants"
+        )
+        .limit(6);
+        
+        res.status(200).json({
+            success: true,
+            result,
+            others
+        });
+    } catch (error) {
+        console.log(error);
+        serverError(res, error);
+    }
+}
+
+
+// @desc: get random products for single product page || @route: GET /api/users/get/getRandomProducts/number - 6 per time || @access:users
+exports.getRandomProducts = async (req, res) => {
+    const { _id } = req.user;
+    const number = req.params.number;
+    try {
+        const result = await Product.find(
+            {
+                $and: [
+                    {stock_control: true},
+                    {status: 'active'}
+                ],
+            },
+            "user store title photo description variants"
+        )
+        .limit(6)
+        .skip(number)
+        .populate("user", "fullname photo username")
+        .populate("store", "shop_name");
+        
+        res.status(200).json({
+            success: true,
+            result
+        });
+    } catch (error) {
+        console.log(error);
+        serverError(res, error);
+    }
+}
+
+
+// @desc: get all user collections || @route: GET /api/users/get/getCartCollections || @access:users
+exports.getCartCollections = async (req, res) => {
+    const { _id } = req.user;
+    try {
+        // const result = await CartCollection.aggregate(
+        //     [
+        //         {
+        //             $lookup: {
+        //                 from: 'cart',
+        //                 // let: {_id: '$collection_id'},
+        //                 localField: '_id',
+        //                 foreignField: 'collection_id',
+        //                 as: 'carty',
+        //                 // pipeline: [
+        //                 //     {$match: {}},
+        //                 //     {$project:{
+        //                 //         quantity: 1,
+        //                 //         product: 1,
+        //                 //         owner: 1
+        //                 //     }}
+        //                 // ]
+        //             }
+        //         }
+        //     ]
+        // )
+        const result = await CartCollection.aggregate.lookup(
+            {
+                from: 'cart', localField: '_id', foreignField: 'collection_id', as: 'carty'
+            }
+        )
+        
+        res.status(200).json({
+            success: true,
+            result
+        });
+    } catch (error) {
+        console.log(error);
+        serverError(res, error);
+    }
+}
+
+
+// @desc: get all products in a user collection || @route: GET /api/users/get/getCartProducts || @access:users
+exports.getCartProducts = async (req, res) => {
+    const { _id } = req.user;
+    const { collection_id } = req.body;
+    try {
+        const result = await Cart.aggregate(
+            [
+                {$match:{}},
+                {$group:{_id: "$store", total:{$sum: 1}}},
+                {$project:{
+                    product: 1,
+                    owner: 1,
+                    quamtity: 1
+                }}
+            ]
+        )
+        
+        res.status(200).json({
+            success: true,
+            result
+        });
+    } catch (error) {
+        console.log(error);
+        serverError(res, error);
+    }
+}
+// collection_id: collection_id

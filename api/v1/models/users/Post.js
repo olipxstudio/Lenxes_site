@@ -27,10 +27,11 @@ const Post = new mongoose.Schema(
       },
     },
     // tag multiple products
-    tagged_product: {
-      type: Array,
-      default: null,
-    },
+    tagged_product: [{
+        type: mongoose.SchemaTypes.ObjectId,
+        ref: "Product",
+        default: null,
+    }],
     // is post from camera or gallery
     post_from: {
       type: String,

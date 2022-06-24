@@ -25,6 +25,11 @@ const {
   getProductDetails,
   getTaggedProducts,
   getDiscussions,
+  getProductToTagged,
+  getSingleProduct,
+  getRandomProducts,
+  getCartCollections,
+  getCartProducts
 } = require("../../controllers/users/getContollers");
 const { validateUserToken } = require("../../02_utils/common");
 
@@ -109,5 +114,23 @@ router.get("/getTaggedProducts/:id", validateUserToken, getTaggedProducts);
 
 // get discussions which user is part of
 router.get("/getDiscussions", validateUserToken, getDiscussions);
+
+// get products to be tagged by search
+router.get("/getProductToTagged", validateUserToken, getProductToTagged);
+
+// get single product details
+router.get("/getSingleProduct", validateUserToken, getSingleProduct);
+
+// get random products for single product page - 6 per time
+router.get("/getRandomProducts/:number", validateUserToken, getRandomProducts);
+
+// get all user cart collections
+router.get("/getCartCollections", validateUserToken, getCartCollections);
+
+// get all products in a user cart collection
+router.get("/getCartProducts", validateUserToken, getCartProducts);
+
+
+
 
 module.exports = router;

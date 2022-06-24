@@ -12,6 +12,8 @@ const Follow = require("../../models/users/Follow");
 const Comments = require("../../models/users/Comments");
 const Share = require("../../models/users/Share");
 const Social = require("../../models/users/Social");
+const CartCollection = require("../../models/users/CartCollection");
+const Cart = require("../../models/users/Cart");
 
 const {
   generateUniqueUserId,
@@ -914,4 +916,71 @@ exports.saveSocial = async (req, res) => {
   } catch (error) {
     clientError(res, error);
   }
+};
+
+
+
+// @desc: create a cart collection || @route: POST /api/users/post/createCollection  || @access:public
+exports.createCollection = async (req, res) => {
+    const { _id } = req.user;
+    const { name } = req.body;
+    try {
+        const result = new CartCollection({
+            user: _id,
+            name
+        })
+        await result.save()
+        res.status(200).json({
+            success: true,
+            message: "Cart Collection created successfully",
+            result
+        });
+    } catch (error) {
+        clientError(res, error);
+    }
+};
+
+
+
+// @desc: Post product to cart under a collection || @route: POST /api/users/post/saveToCart  || @access:public
+exports.saveToCart = async (req, res) => {
+    const { _id } = req.user;
+    const { collection, product, owner, store, quantity } = req.body;
+    try {
+        let collection_id = collection;
+        if(collection=='' || collection==null){
+            const find = await CartCollection.findOne({
+                $and:[
+                    {user:_id},
+                    {name:'Default'}
+                ]
+            })
+            if(find==null){
+                const result = new CartCollection({
+                    user: _id,
+                    name: 'Default'
+                })
+                await result.save()
+                collection_id = result._id
+            }else{
+                collection_id = find._id
+            }
+        }
+        const result = new Cart({
+            user: _id,
+            collection_id,
+            product,
+            owner,
+            store,
+            quantity
+        })
+        await result.save()
+        res.status(200).json({
+            success: true,
+            message: "Product saved to Cart successfully",
+            result
+        });
+    } catch (error) {
+        serverError(res, error);
+    }
 };
