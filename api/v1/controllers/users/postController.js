@@ -967,11 +967,23 @@ exports.saveToCart = async (req, res) => {
                 collection_id = find._id
             }
         }
+        const check = await Cart.findOne({
+            $and:[
+                {user: _id},
+                {product},
+                {store}
+            ]
+        }).count()
+        if(check>0){
+            return res.status(200).json({
+                success: false,
+                message: "Product already in cart"
+            });
+        }
         const result = new Cart({
             user: _id,
             collection_id,
             product,
-            owner,
             store,
             quantity
         })
