@@ -31,19 +31,27 @@ const CartSchema = new Schema(
     },
     delivery:{
         payment_set:{
-            type: Boolean, // charged / free - charged is false, while free is true
+            type: Boolean, // if true and fee is 0 then free delivery
             default: false
         },
         type:{
             type: String, // home / pickup
             default: 'home'
         },
+        pick_address:{
+            type: String,
+            default: 'home'
+        },
         fee:{
             type: Number,
             default: 0
         },
-        instruction:{
+        duration:{
             type: String
+        },
+        instruction:{
+            type: String,
+            default: null
         }
     },
     status: {
