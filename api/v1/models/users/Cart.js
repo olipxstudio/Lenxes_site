@@ -38,9 +38,9 @@ const CartSchema = new Schema(
             type: String, // home / pickup
             default: 'home'
         },
-        pick_address:{
+        pickup_location:{
             type: String,
-            default: 'home'
+            default: null
         },
         fee:{
             type: Number,
