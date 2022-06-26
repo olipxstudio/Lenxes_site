@@ -30,7 +30,7 @@ const CartSchema = new Schema(
         type: SchemaTypes.ObjectId
     },
     delivery:{
-        done:{ // done?
+        payment_set:{
             type: Boolean, // charged / free - charged is false, while free is true
             default: false
         },
