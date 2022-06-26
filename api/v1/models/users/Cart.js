@@ -18,11 +18,6 @@ const CartSchema = new Schema(
         ref:'Product',
         required: true
     },
-    owner: {
-        type: SchemaTypes.ObjectId,
-        ref:'User',
-        required: true
-    },
     store: {
         type: SchemaTypes.ObjectId,
         ref:'Store',
@@ -31,16 +26,19 @@ const CartSchema = new Schema(
     quantity:{
         type: Number
     },
+    address:{
+        type: SchemaTypes.ObjectId
+    },
     delivery:{
-        type:{
+        payment:{
             type: String, // charged / free
             default: 'charged'
         },
-        home:{
-            type: Number,
-            default: 0
+        type:{
+            type: String, // home / pickup
+            default: 'home'
         },
-        pickup:{
+        fee:{
             type: Number,
             default: 0
         },
