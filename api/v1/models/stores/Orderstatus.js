@@ -44,6 +44,9 @@ const OrderstatusScheme = new Schema({
         type: SchemaTypes.ObjectId,
         ref: 'Delivery'
     },
+    delivery_token:{
+        type: String
+    },
     transaction_id:{
         type: String
     },

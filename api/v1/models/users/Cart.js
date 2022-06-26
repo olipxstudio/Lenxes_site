@@ -31,6 +31,23 @@ const CartSchema = new Schema(
     quantity:{
         type: Number
     },
+    delivery:{
+        type:{
+            type: String, // charged / free
+            default: 'charged'
+        },
+        home:{
+            type: Number,
+            default: 0
+        },
+        pickup:{
+            type: Number,
+            default: 0
+        },
+        instruction:{
+            type: String
+        }
+    },
     status: {
         type: String,
         default: 'active'

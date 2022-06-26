@@ -7,7 +7,8 @@ const {
   getAllStoreSub_SetCategories,
   getProducts,
   getCatProducts,
-  getNewArrivals
+  getNewArrivals,
+  getStoreNotifications
 } = require("../../controllers/stores/getControllers");
 const { validateUserToken } = require("../../02_utils/common");
 
@@ -36,6 +37,9 @@ router.get("/getCatProducts/:path/:number", validateUserToken, getCatProducts);
 
 // get store new arrivals products - 6 per time
 router.get("/getNewArrivals/:number", validateUserToken, getNewArrivals);
+
+// get store notifications - 12 per time
+router.get("/getStoreNotifications/:number", validateUserToken, getStoreNotifications);
 
 
 

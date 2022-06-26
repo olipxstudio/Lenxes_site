@@ -7,7 +7,8 @@ const {
   updateStore,
   updateCategory,
   updateSubCategory,
-  updateSubSetCategory
+  updateSubSetCategory,
+  updateCartDelivery
 } = require("../../controllers/stores/patchControllers");
 
 const { validateUserToken } = require("../../02_utils/common");
@@ -35,6 +36,9 @@ router.patch("/updateSubCategory", validateUserToken, updateSubCategory);
 
 // update a store subsetcategory
 router.patch("/updateSubSetCategory", validateUserToken, updateSubSetCategory);
+
+// update cart delivery fee
+router.patch("/updateCartDelivery", validateUserToken, updateCartDelivery);
 
 
 

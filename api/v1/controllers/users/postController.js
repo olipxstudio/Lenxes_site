@@ -14,6 +14,7 @@ const Share = require("../../models/users/Share");
 const Social = require("../../models/users/Social");
 const CartCollection = require("../../models/users/CartCollection");
 const Cart = require("../../models/users/Cart");
+const StoreNotification = require("../../models/stores/Notification");
 
 const {
   generateUniqueUserId,
@@ -975,6 +976,21 @@ exports.saveToCart = async (req, res) => {
             quantity
         })
         await result.save()
+        // Send notification to seller to add delivery fee
+        const getLocation = await User.findOne({_id})
+        const location_concat = getLocation.address.address_line1+', '+getLocation.address.lga+', '+getLocation.address.state+', '+getLocation.address.country;
+        const sendNotification = new StoreNotification({
+            sender:_id,
+            receiver:owner,
+            store,
+            type:'delivery',
+            delivery:{
+                product,
+                location:location_concat,
+                cart_id:result._id
+            }
+        })
+        await sendNotification.save()
         res.status(200).json({
             success: true,
             message: "Product saved to Cart successfully",

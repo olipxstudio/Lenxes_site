@@ -5,6 +5,7 @@ const Category = require("../../models/stores/Category");
 const Subcategory = require("../../models/stores/Subcategory");
 const Subsetcategory = require("../../models/stores/Subsetcategory");
 const Product = require("../../models/stores/Product");
+const StoreNotification = require("../../models/stores/Notification");
 
 // get all store categories
 // @desc: get all store categories || @route: GET /api/stores/get/getAllStoreCategories  || @access:user
@@ -188,6 +189,37 @@ exports.getNewArrivals = async (req, res) => {
         .skip(number)
         .populate("user","fullname username photo")
         .populate("store","shop_name location");
+       
+      res.status(200).json({
+        success: true,
+        count: result?.length,
+        data: result
+      });
+    } catch (error) {
+      serverError(res, error);
+    }
+};
+
+
+// @desc: get store notifications || @route: GET /api/stores/get/getStoreNotifications/number - 12 per time  || @access:user
+exports.getStoreNotifications = async (req, res) => {
+    const { _id } = req.user;
+    const { store } = req.body;
+    const {number} = req.params;
+    try {
+        const result = await StoreNotification.find(
+            {
+                $and:[
+                    {receiver:_id},
+                    {store:store}
+                ]
+            }
+        ).sort("-date")
+        .limit(12)
+        .skip(number)
+        .populate("sender","fullname username photo")
+        .populate("delivery.product","sku title photo condition category variants")
+        .populate("enquiry.product");
        
       res.status(200).json({
         success: true,

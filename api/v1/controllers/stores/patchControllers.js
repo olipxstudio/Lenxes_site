@@ -2,13 +2,14 @@ const User = require("../../models/users/User");
 const Category = require("../../models/stores/Category");
 const Subcategory = require("../../models/stores/Subcategory");
 const Subsetcategory = require("../../models/stores/Subsetcategory");
+const Cart = require("../../models/users/Cart");
 
 
 const { clientError, serverError } = require("../../02_utils/common");
 
 
 // update a store
-// @desc: update a store || @route: POST /api/store/patch/updateStore  || @access:public
+// @desc: update a store || @route: PATCH /api/stores/patch/updateStore  || @access:public
 exports.updateStore = async (req, res) => {
     const {_id} = req.user
     const {store_id, shop_name, motto, location, address, phone, email, employee_size, access_pin, business_type, bank, account_number, account_name} = req.body;
@@ -50,7 +51,7 @@ exports.updateStore = async (req, res) => {
 }
 
 // enter store policy
-// @desc: enter store policy || @route: POST /api/store/patch/updateStorePolicy  || @access:public
+// @desc: enter store policy || @route: PATCH /api/stores/patch/updateStorePolicy  || @access:public
 exports.updateStorePolicy = async (req, res) => {
     const {_id} = req.user
     const {store_id, title, body} = req.body;
@@ -82,7 +83,7 @@ exports.updateStorePolicy = async (req, res) => {
 
 
 // complete a store
-// @desc: complete a store || @route: POST /api/store/patch/completeStore  || @access:public
+// @desc: complete a store || @route: PATCH /api/stores/patch/completeStore  || @access:public
 exports.completeStore = async (req, res) => {
     const {_id} = req.user
     const {store_id, type, front_photo, back_photo, id} = req.body;
@@ -115,7 +116,7 @@ exports.completeStore = async (req, res) => {
 
 
 // update a store category
-// @desc: update a store category || @route: POST /api/store/patch/updateCategory  || @access:public
+// @desc: update a store category || @route: PATCH /api/stores/patch/updateCategory  || @access:public
 exports.updateCategory = async (req, res) => {
     const {_id} = req.user
     const {store_id, category_id, name} = req.body;
@@ -145,7 +146,7 @@ exports.updateCategory = async (req, res) => {
 
 
 // update a store subcategory
-// @desc: update a store subcategory || @route: POST /api/store/patch/updateSubCategory  || @access:public
+// @desc: update a store subcategory || @route: PATCH /api/stores/patch/updateSubCategory  || @access:public
 exports.updateSubCategory = async (req, res) => {
     const {_id} = req.user
     const {store_id, name, sub_category_id} = req.body;
@@ -174,7 +175,7 @@ exports.updateSubCategory = async (req, res) => {
 
 
 // update a store subsetcategory
-// @desc: update a store subsetcategory || @route: POST /api/store/patch/updateSubSetCategory  || @access:public
+// @desc: update a store subsetcategory || @route: PATCH /api/stores/patch/updateSubSetCategory  || @access:public
 exports.updateSubSetCategory = async (req, res) => {
     const {_id} = req.user
     const {store_id, name, sub_set_category_id} = req.body;
@@ -200,3 +201,36 @@ exports.updateSubSetCategory = async (req, res) => {
         clientError(res, error)
     }
 }
+
+
+// @desc: update cart delivery fee || @route: PATCH /api/stores/patch/updateCartDelivery  || @access:public
+exports.updateCartDelivery = async (req, res) => {
+    const {_id} = req.user
+    const {cart_id, type, home, pickup, instruction} = req.body;
+    try {
+        const result = await Cart.findOneAndUpdate(
+            {
+                _id: cart_id
+            },
+            {
+                $set:{
+                    delivery:{
+                        type,
+                        home,
+                        pickup,
+                        instruction
+                    }
+                }
+            }
+        )
+        res.status(200).json({
+            success: true,
+            message:"Delivery fee sent successfully",
+            data: result,
+        })
+    } catch (error) {
+        clientError(res, error)
+    }
+}
+
+

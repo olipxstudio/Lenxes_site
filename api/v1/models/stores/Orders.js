@@ -17,6 +17,11 @@ const OrdersScheme = new Schema({
         ref: 'User',
         required: true
     },
+    store: {
+        type: SchemaTypes.ObjectId,
+        ref:'Store',
+        required: true
+    },
     quantity: {
         type: Number
     },
@@ -27,6 +32,23 @@ const OrdersScheme = new Schema({
     },
     transaction_id:{
         type: String
+    },
+    delivery:{
+        type:{
+            type: String, // charged / free
+            default: 'charged'
+        },
+        home:{
+            type: Number,
+            default: 0
+        },
+        pickup:{
+            type: Number,
+            default: 0
+        },
+        instruction:{
+            type: String
+        }
     },
     status:{
         type: String,

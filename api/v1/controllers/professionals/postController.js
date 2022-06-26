@@ -61,7 +61,7 @@ exports.createSite = async (req, res) => {
                 },
                 order: 1,
                 type: 'banner',
-                title: business_name,
+                title: {text: business_name},
                 sub_title: bio,
                 banner:{
                     photo:{
@@ -171,7 +171,7 @@ exports.addTeam = async (req, res) => {
             show_on: show_on === "page" ? { page:true } : { modal:show_on },
             order,
             type: 'team',
-            title,
+            title:{text: title},
             sub_title: subtitle,
             call_to_action:{
                 enabled: cta_enabled,
@@ -233,7 +233,7 @@ exports.addTestimonials = async (req, res) => {
             show_on: show_on === "page" ? { page:true } : { modal:show_on },
             order,
             type: 'testimonials',
-            title,
+            title:{text: title},
             sub_title: subtitle
         })
         // update others order before saving
@@ -277,7 +277,7 @@ exports.addCoreValue = async (req, res) => {
             show_on: show_on === "page" ? { page:true } : { modal:show_on },
             order,
             type: 'values',
-            title,
+            title:{text: title},
             sub_title: subtitle,
             core_value: values
         })
@@ -322,7 +322,7 @@ exports.addConnect = async (req, res) => {
             show_on: show_on === "page" ? { page:true } : { modal:show_on },
             order,
             type: 'connect',
-            title,
+            title:{text: title},
             sub_title: subtitle,
             connect: true
         })
@@ -367,7 +367,7 @@ exports.addDownloadable = async (req, res) => {
             show_on: show_on === "page" ? { page:true } : { modal:show_on },
             order,
             type: 'downloadable',
-            title,
+            title:{text: title},
             sub_title: subtitle,
             downloadable: file_link
         })
@@ -412,7 +412,7 @@ exports.addLinks = async (req, res) => {
             show_on: show_on === "page" ? { page:true } : { modal:show_on },
             order,
             type: 'links',
-            title,
+            title:{text: title},
             sub_title: subtitle,
             links: links
         })
@@ -457,7 +457,7 @@ exports.addSkillSet = async (req, res) => {
             show_on: show_on === "page" ? { page:true } : { modal:show_on },
             order,
             type: 'skillset',
-            title,
+            title:{text: title},
             sub_title: subtitle,
             skillset: skills
         })
@@ -502,7 +502,7 @@ exports.addVideo = async (req, res) => {
             show_on: show_on === "page" ? { page:true } : { modal:show_on },
             order,
             type: 'video',
-            title,
+            title:{text: title},
             sub_title: subtitle,
             video: video_link
         })
@@ -555,7 +555,7 @@ exports.addPastProjects = async (req, res) => {
             show_on: show_on === "page" ? { page:true } : { modal:show_on },
             order,
             type: 'projects',
-            title,
+            title:{text: title},
             sub_title: subtitle,
             call_to_action:{
                 enabled: cta_enabled,
@@ -616,7 +616,7 @@ exports.addPartners = async (req, res) => {
             show_on: show_on === "page" ? { page:true } : { modal:show_on },
             order,
             type: 'partners',
-            title,
+            title:{text: title},
             sub_title: subtitle,
             partners: partners
         })
@@ -669,7 +669,7 @@ exports.addText = async (req, res) => {
             show_on: show_on === "page" ? { page:true } : { modal:show_on },
             order,
             type: 'text',
-            title,
+            title:{text: title},
             sub_title: subtitle,
             call_to_action:{
                 enabled: cta_enabled,
@@ -738,7 +738,7 @@ exports.addSection = async (req, res) => {
             show_on: show_on === "page" ? { page:true } : { modal:show_on },
             order,
             type: 'section',
-            title,
+            title:{text: title},
             sub_title: subtitle,
             call_to_action:{
                 enabled: cta_enabled,
@@ -810,7 +810,7 @@ exports.addServices = async (req, res) => {
             show_on: show_on === "page" ? { page:true } : { modal:show_on },
             order,
             type: 'services',
-            title,
+            title:{text: title},
             sub_title: subtitle,
             model,
             call_to_action:{
@@ -872,7 +872,7 @@ exports.addStats = async (req, res) => {
             show_on: show_on === "page" ? { page:true } : { modal:show_on },
             order,
             type: 'stats',
-            title,
+            title:{text: title},
             sub_title: subtitle,
             stats
         })
@@ -917,7 +917,7 @@ exports.addHorizontalCard = async (req, res) => {
             show_on: show_on === "page" ? { page:true } : { modal:show_on },
             order,
             type: 'hcards',
-            title,
+            title:{text: title},
             sub_title: subtitle,
             card: hcards
         })
@@ -962,7 +962,7 @@ exports.addExperience = async (req, res) => {
             show_on: show_on === "page" ? { page:true } : { modal:show_on },
             order,
             type: 'experience',
-            title,
+            title:{text: title},
             sub_title: subtitle,
             experience: experiences
         })
@@ -997,7 +997,7 @@ exports.addExperience = async (req, res) => {
 // @desc: Add Banner to Site || @route: POST /api/professionals/post/addBanner  || @access:public
 exports.addBanner = async (req, res) => {
     const {_id} = req.user
-    const {site, title, subtitle, model, social, banner_type, photo_type, photo_url, photo_height, font_size, colour, font_family, font_case, screen, after_position, show_on, cta_enabled, anchor, cta_type, onclick, modal_title} = req.body
+    const {site, title, subtitle, model, social, banner_type, photo_type, photo_url, photo_height, decor_text, decor_colour, decor_fontface, font_size, colour, font_family, font_case, screen, after_position, show_on, cta_enabled, anchor, cta_type, onclick, modal_title} = req.body
     let check;
     if(cta_type=='external'){
         check = { "link": onclick }
@@ -1015,7 +1015,7 @@ exports.addBanner = async (req, res) => {
             show_on: show_on === "page" ? { page:true } : { modal:show_on },
             order,
             type: 'banner',
-            title,
+            title:{text: title},
             sub_title: subtitle,
             social,
             model,
@@ -1031,6 +1031,11 @@ exports.addBanner = async (req, res) => {
                     type: photo_type,
                     url: photo_url,
                     height: photo_height
+                },
+                decor_title:{
+                    text:{ text: decor_text },
+                    colour:{ colour: decor_colour },
+                    font_family:{ font_family: decor_fontface }
                 },
                 properties:{
                     font_size,

@@ -35,7 +35,13 @@ const SitebodySchema = new Schema(
             // banner, skillset, experience, projects, text, links, video, team, testimonials, values, connect, downloadable, partners, stats, hcards, section, services
         },
         title:{
-            type: String,
+            text:{
+                type: String
+            },
+            colour:{
+                type: String,
+                default: '#000000'
+            }
         },
         sub_title:{
             type: String,
@@ -91,10 +97,23 @@ const SitebodySchema = new Schema(
                     default: 'normal' //normal / large
                 },
             },
+            decor_title:{
+                text:{
+                    type: String
+                },
+                colour:{
+                    type: String,
+                    default: 'inherite' // inherite primary colour or set
+                },
+                font_family:{
+                    type: String,
+                    default: 'Normal'
+                },
+            },
             properties:{
                 font_size:{
                     type: String, // small, medium, large
-                    default: 'medium'
+                    default: 'medium' // can apply to title on banner
                 },
                 colour:{
                     type: String,
@@ -106,7 +125,7 @@ const SitebodySchema = new Schema(
                 },
                 case:{
                     type: String,
-                    default: 'titled'
+                    default: 'titled' // can apply to title on banner
                 }
             }
         },
