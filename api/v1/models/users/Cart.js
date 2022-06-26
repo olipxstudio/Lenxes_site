@@ -31,8 +31,8 @@ const CartSchema = new Schema(
     },
     delivery:{
         payment:{
-            type: String, // charged / free
-            default: 'charged'
+            type: Boolean, // charged / free - charged is false, while free is true
+            default: false
         },
         type:{
             type: String, // home / pickup
