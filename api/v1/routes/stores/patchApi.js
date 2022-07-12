@@ -8,7 +8,9 @@ const {
   updateCategory,
   updateSubCategory,
   updateSubSetCategory,
-  updateCartDelivery
+  updateCartDelivery,
+  updateAndDeclineOrder,
+  updateProductStatus
 } = require("../../controllers/stores/patchControllers");
 
 const { validateUserToken } = require("../../02_utils/common");
@@ -40,6 +42,11 @@ router.patch("/updateSubSetCategory", validateUserToken, updateSubSetCategory);
 // update cart delivery fee
 router.patch("/updateCartDelivery", validateUserToken, updateCartDelivery);
 
+// update order to declined - for when seller decline order for user refund
+router.patch("/updateAndDeclineOrder", validateUserToken, updateAndDeclineOrder);
+
+// update product status to trash or active
+router.patch("/updateProductStatus", validateUserToken, updateProductStatus);
 
 
 

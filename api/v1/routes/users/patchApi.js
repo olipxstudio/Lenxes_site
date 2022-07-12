@@ -5,6 +5,11 @@ const {
   updateUserSecurity,
   uploadUserProfilePicture,
   updateUserPassword,
+  updateTwofactorAuth,
+  updateUserProfile,
+  updateUserPhoneEmail,
+  updateAddAddress,
+  updateSingleAddress
 } = require("../../controllers/users/patchControllers");
 const { validateUserToken } = require("../../02_utils/common");
 const {
@@ -33,7 +38,7 @@ router.patch(
 
 // change password
 router.patch(
-  "/changePassword",
+  "/updateUserPassword",
   validateUserToken,
   checkIfPasswordIsCorrect,
   updateUserPassword
@@ -41,6 +46,23 @@ router.patch(
 
 // reset password
 router.patch("/resetPassword", validateUserToken, updateUserPassword);
+
+// update two factor auth
+router.patch("/updateTwofactorAuth", validateUserToken, updateTwofactorAuth);
+
+// update user profile details
+router.patch("/updateUserProfile", validateUserToken, updateUserProfile);
+
+// update user phone and email
+router.patch("/updateUserPhoneEmail", validateUserToken, updateUserPhoneEmail);
+
+// manage account - add address
+router.patch("/updateAddAddress", validateUserToken, updateAddAddress);
+
+// manage account - update single address
+router.patch("/updateSingleAddress", validateUserToken, updateSingleAddress);
+
+
 
 
 

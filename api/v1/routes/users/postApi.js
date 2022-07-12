@@ -26,7 +26,11 @@ const {
   saveSocial,
   sendPdf,
   createCollection,
-  saveToCart
+  saveToCart,
+  indust,
+  sendFeedBack,
+  saveUserOrders,
+  saveProductReview
 } = require("../../controllers/users/postController");
 
 const {
@@ -155,5 +159,21 @@ router.post("/createCollection", validateUserToken, createCollection);
 
 // save product to cart under collection
 router.post("/saveToCart", validateUserToken, saveToCart);
+
+// ------------ // add to industries ----------- //
+router.post("/indust", validateUserToken, indust);
+
+// User send feedback
+router.post("/sendFeedBack", validateUserToken, sendFeedBack);
+
+// post user orders
+router.post("/saveUserOrders", validateUserToken, saveUserOrders);
+
+// post review to product
+router.post("/saveProductReview", validateUserToken, saveProductReview);
+
+
+
+
 
 module.exports = router;

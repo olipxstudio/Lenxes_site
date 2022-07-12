@@ -7,7 +7,8 @@ const {
   addSubCategory,
   addSubSetCategory,
   addProduct,
-  makeOrder
+  makeOrder,
+  completeOrders
 } = require("../../controllers/stores/postController");
 
 const {
@@ -41,5 +42,20 @@ router.post("/product/new", validateUserToken, addProduct);
 
 // Save an Order
 router.post("/makeOrder", validateUserToken, makeOrder);
+
+// validate token from seller and set payout
+router.post("/completeOrders", validateUserToken, completeOrders);
+
+
+
+
+
+
+
+
+
+
+
+
 
 module.exports = router;

@@ -29,7 +29,16 @@ const {
   getSingleProduct,
   getRandomProducts,
   getCartCollections,
-  getCartProducts
+  getFeedUserPreview,
+  getSitePreview,
+  getSuggestedPeople,
+  getExploreUserSearch,
+  getExploreProductSearch,
+  getExploreProducts,
+  getCartQualifiedProducts,
+  getCartNotQualified,
+  getProductReviews,
+  getAllOrders
 } = require("../../controllers/users/getContollers");
 const { validateUserToken } = require("../../02_utils/common");
 
@@ -127,8 +136,35 @@ router.get("/getRandomProducts/:number", validateUserToken, getRandomProducts);
 // get all user cart collections
 router.get("/getCartCollections", validateUserToken, getCartCollections);
 
-// get all products in a user cart collection
-router.get("/getCartProducts", validateUserToken, getCartProducts);
+// get all product in a cart collection that are qualified for payment
+router.get("/getCartQualifiedProducts", validateUserToken, getCartQualifiedProducts);
+
+// get all product in a cart collection that not qualified
+router.get("/getCartNotQualified", validateUserToken, getCartNotQualified);
+
+// Get user details and four most recent posts - for previewing user to follow details on empty feed
+router.get("/getFeedUserPreview", validateUserToken, getFeedUserPreview);
+
+// Get user Site brand name and Hero - for previewing user business on post
+router.get("/getSitePreview", validateUserToken, getSitePreview);
+
+// Get suggested people base on user Industry - for explore page - 7 per time
+router.get("/getSuggestedPeople/:number", validateUserToken, getSuggestedPeople);
+
+// Get explore User Search - for explore page
+router.get("/getExploreUserSearch", validateUserToken, getExploreUserSearch);
+
+// Get explore Product Search - for explore page
+router.get("/getExploreProductSearch", validateUserToken, getExploreProductSearch);
+
+// Get explore Products - 12 per time
+router.get("/getExploreProducts", validateUserToken, getExploreProducts);
+
+// Get Product reviews - 12 per time
+router.get("/getProductReviews/:number", validateUserToken, getProductReviews);
+
+// Get all orders - pending or done - 15 per time
+router.get("/getAllOrders/:status/:number", validateUserToken, getAllOrders);
 
 
 
