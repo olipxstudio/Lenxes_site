@@ -21,7 +21,8 @@ const {
     addStats,
     addHorizontalCard,
     addExperience,
-    addBanner
+    addBanner,
+    addFaqs
 } = require("../../controllers/professionals/postController");
 
 const {
@@ -42,7 +43,7 @@ const { validateUserToken } = require("../../02_utils/common");
 router.post("/createSite", validateUserToken, createSite);
 
 // to add new widget for display in modal to select
-router.post("/widget", addWidget);
+router.post("/addWidget", addWidget);
 
 // to add new nav to site @route: POST /api/professionals/post/addNav
 router.post("/addNav", validateUserToken, addNav);
@@ -97,6 +98,9 @@ router.post("/addExperience", validateUserToken, addExperience);
 
 // to Add Banner to Site @route: POST /api/professionals/post/addBanner
 router.post("/addBanner", validateUserToken, addBanner);
+
+// to Add FAQs to Site @route: POST /api/professionals/post/addFaqs
+router.post("/addFaqs", validateUserToken, addFaqs);
 
 
 

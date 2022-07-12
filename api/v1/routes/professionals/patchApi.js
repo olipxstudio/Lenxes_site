@@ -7,7 +7,9 @@ const {
     updateSite,
     updateSiteNav,
     lockUnlockSiteNav,
-    updateCTA
+    updateCTA,
+    updateTeam,
+    updateTestimonials
 } = require("../../controllers/professionals/patchControllers");
 
 const { validateUserToken } = require("../../02_utils/common");
@@ -35,6 +37,15 @@ router.patch("/lockUnlockSiteNav", validateUserToken, lockUnlockSiteNav);
 
 // update call to action in site nav @route: PATCH /api/professionals/patch/updateCTA
 router.patch("/updateCTA", validateUserToken, updateCTA);
+
+// update Team members section in site @route: PATCH /api/professionals/patch/updateTeam
+router.patch("/updateTeam", validateUserToken, updateTeam);
+
+// update site Testimonials @route: PATCH /api/professionals/patch/updateTestimonials
+router.patch("/updateTestimonials", validateUserToken, updateTestimonials);
+
+
+
 
 
 

@@ -13,10 +13,18 @@ const CartSchema = new Schema(
         ref:'Cartcollection',
         required: true
     },
-    product: {
-        type: SchemaTypes.ObjectId,
-        ref:'Product',
-        required: true
+    product_details: {
+        product: {
+            type: SchemaTypes.ObjectId,
+            ref:'Product',
+            required: true
+        },
+        variant:{
+            type: SchemaTypes.ObjectId,
+        },
+        variant_item:{
+            type: SchemaTypes.ObjectId,
+        }
     },
     store: {
         type: SchemaTypes.ObjectId,

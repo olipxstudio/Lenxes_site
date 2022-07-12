@@ -10,8 +10,13 @@ const CommentSchema = new Schema(
         },
         post: {
             type: SchemaTypes.ObjectId,
-            ref:'Discuss',
+            refPath:'type'
+        },
+        type:{
+            type: String,
+            enum: ['Post', 'Product', 'Jive', 'Question'],
             required: true
+            // product, post, question, jive
         },
         text: {
             type: String,

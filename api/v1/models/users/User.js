@@ -84,8 +84,9 @@ const UserSchema = new mongoose.Schema(
     bio: {
       type: String,
     },
-    category: {
-      type: String,
+    industry: {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: 'Social_industry'
     },
     followers:{
         type: Number,
@@ -101,6 +102,10 @@ const UserSchema = new mongoose.Schema(
     },
     website: {
       type: String,
+    },
+    two_factor_enabled:{
+        type: Boolean,
+        default: false
     },
     credit: {
       type: Number,
