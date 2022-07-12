@@ -100,7 +100,7 @@ exports.getPageBody = async (req, res) => {
                 $and:[
                     {site},
                     {screen},
-                    {show_on:{page:true}},
+                    {"show_on.page":true},
                     {status:'active'}
                 ]
             }

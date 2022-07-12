@@ -6,6 +6,11 @@ const Subcategory = require("../../models/stores/Subcategory");
 const Subsetcategory = require("../../models/stores/Subsetcategory");
 const Product = require("../../models/stores/Product");
 const StoreNotification = require("../../models/stores/Notification");
+const Store = require("../../models/stores/Store");
+const Structure = require("../../models/stores/Structure");
+const Orders = require("../../models/stores/Orders");
+const Orderstatus = require("../../models/stores/Orderstatus");
+const Payout = require("../../models/stores/Payout");
 
 // get all store categories
 // @desc: get all store categories || @route: GET /api/stores/get/getAllStoreCategories  || @access:user
@@ -230,3 +235,213 @@ exports.getStoreNotifications = async (req, res) => {
       serverError(res, error);
     }
 };
+
+
+// @desc: get store product search result || @route: GET /api/stores/get/getSearchProducts  || @access:user
+exports.getSearchProducts = async (req, res) => {
+    const { _id } = req.user;
+    const { keyword, store } = req.body;
+    try {
+        const result = await Product.find(
+            {
+                $and:[
+                    {title: new RegExp('.*' + keyword + '.*', 'i')},
+                    {store},
+                    {status: 'active'}
+                ]
+            },
+            "title photo category subcategory subsetcategory condition"
+        )
+        .populate("category","name")
+        .populate("subcategory","name")
+       
+      res.status(200).json({
+        success: true,
+        count: result?.length,
+        data: result
+      });
+    } catch (error) {
+      serverError(res, error);
+    }
+};
+
+
+// @desc: get random products for store - suggested products || @route: GET /api/stores/get/getRandomProducts/number  || @access:user
+exports.getRandomProducts = async (req, res) => {
+    const { _id } = req.user;
+    const { store } = req.body;
+    const { number } = req.params;
+    try {
+        const result = await Product.find(
+            {
+                $and:[
+                    {store},
+                    {status: 'active'}
+                ]
+            },
+            "sku title photo category subcategory subsetcategory condition variants"
+        ).limit(12)
+        .skip(number)
+       
+      res.status(200).json({
+        success: true,
+        count: result?.length,
+        data: result
+      });
+    } catch (error) {
+      serverError(res, error);
+    }
+};
+
+
+// @desc: get store details and structure || @route: GET /api/stores/get/getStoreDetails  || @access:user
+exports.getStoreDetails = async (req, res) => {
+    const { _id } = req.user;
+    const { user, store } = req.body;
+    try {
+        const result = await Store.findOne(
+            {
+                $and:[
+                    {user},
+                    {_id:store}
+                ]
+            },
+            "shop_name motto location address phone email"
+        )
+        const structure = await Structure.findOne({store})
+        res.status(200).json({
+            success: true,
+            data: result,
+            structure
+        });
+    } catch (error) {
+      serverError(res, error);
+    }
+};
+
+
+
+// @desc: get all store orders - pending or done - 15 per time || @route: GET /api/stores/get/getAllOrders/:status/:number  || @access:user
+exports.getAllOrders = async (req, res) => {
+    const { _id } = req.user;
+    const { status, number } = req.params;
+    const { store } = req.body;
+    try {
+        const result = await Orders.find(
+            {
+                $and:[
+                    {store},
+                    {status}
+                ]
+            }
+        )
+        .limit(15)
+        .skip(number)
+        .populate("buyer","fullname photo username")
+        .populate("order_status_id","payment_status amount shipping total_amount delivery_method delivery_token.seller")
+        
+        res.status(200).json({
+            success: true,
+            result
+        });
+    } catch (error) {
+        serverError(res, error);
+    }
+};
+
+
+
+// @desc: get single order details || @route: GET /api/stores/get/getSingleOrder  || @access:user
+exports.getSingleOrder = async (req, res) => {
+    const { _id } = req.user;
+    const { store, transaction_id } = req.body;
+    try {
+        const result = await Orderstatus.findOne(
+            {
+                $and:[
+                    {store},
+                    {transaction_id}
+                ]
+            }
+        )
+        .populate("buyer","fullname photo username")
+        
+        const order = await Orders.find(
+            {
+                $and:[
+                    {store},
+                    {transaction_id}
+                ]
+            },
+            "product_details.product delivery quantity"
+        )
+        .populate({path: "product_details.product", select:"sku photo title condition category subcategory subsetcategory", populate: { path: "category", select:"name" }})
+        
+        res.status(200).json({
+            success: true,
+            result,
+            order
+        });
+    } catch (error) {
+        serverError(res, error);
+    }
+};
+
+
+
+// @desc: get all payouts, pending and done - 15 per time || @route: GET /api/stores/get/getPayouts/:number  || @access:user
+exports.getPayouts = async (req, res) => {
+    const { _id } = req.user;
+    const { number } = req.params;
+    const { store } = req.body;
+    try {
+        const result = await Payout.find(
+            {
+                $and:[
+                    {store}
+                ]
+            }
+        )
+        .limit(15)
+        .skip(number)
+        
+        res.status(200).json({
+            success: true,
+            result
+        });
+    } catch (error) {
+        serverError(res, error);
+    }
+};
+
+
+
+// @desc: get all store product by status - 15 per time || @route: GET /api/stores/get/getStoreProducts/:status/:number  || @access:user
+exports.getStoreProducts = async (req, res) => {
+    const { _id } = req.user;
+    const { status, number } = req.params;
+    const { store } = req.body;
+    try {
+        const result = await Product.find(
+            {
+                $and:[
+                    {store},
+                    {status} // active or trash
+                ]
+            }
+        )
+        .limit(15)
+        .skip(number)
+        .populate("category","name")
+        .populate("subcategory","name")
+        .populate("subsetcategory","name")
+        
+        res.status(200).json({
+            success: true,
+            result
+        });
+    } catch (error) {
+        serverError(res, error);
+    }
+};
+

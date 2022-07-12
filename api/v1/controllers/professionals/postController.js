@@ -133,6 +133,9 @@ exports.addNav = async (req, res) => {
             "_id"
         )
         order = getLen.length + 1;
+        if(order>6){
+            return clientError(res, "Nav limit reached")
+        }
         const result = new Nav({
             name,
             site,
@@ -204,6 +207,7 @@ exports.addTeam = async (req, res) => {
                 user:_id,
                 site,
                 screen,
+                widget: result._id,
                 title: modal_title,
             })
             await modal.save()
@@ -588,6 +592,7 @@ exports.addPastProjects = async (req, res) => {
                 user:_id,
                 site,
                 screen,
+                widget: result._id,
                 title: modal_title,
             })
             await modal.save()
@@ -702,6 +707,7 @@ exports.addText = async (req, res) => {
                 user:_id,
                 site,
                 screen,
+                widget: result._id,
                 title: modal_title,
             })
             await modal.save()
@@ -774,6 +780,7 @@ exports.addSection = async (req, res) => {
                 user:_id,
                 site,
                 screen,
+                widget: result._id,
                 title: modal_title,
             })
             await modal.save()
@@ -844,6 +851,7 @@ exports.addServices = async (req, res) => {
                 user:_id,
                 site,
                 screen,
+                widget: result._id,
                 title: modal_title,
             })
             await modal.save()
@@ -1068,6 +1076,7 @@ exports.addBanner = async (req, res) => {
                 user:_id,
                 site,
                 screen,
+                widget: result._id,
                 title: modal_title,
             })
             await modal.save()
@@ -1080,3 +1089,74 @@ exports.addBanner = async (req, res) => {
         serverError(res, error)
     }
 }
+
+
+
+// @desc: Add FAQs to Site || @route: POST /api/professionals/post/addFaqs  || @access:public
+exports.addFaqs = async (req, res) => {
+    const {_id} = req.user
+    const {site, screen, after_position, title, subtitle, model, faqs, cta_enabled, anchor, cta_type, onclick, modal_title} = req.body // faqs array of question, answer
+    let check;
+    if(cta_type=='external'){
+        check = { "link": onclick }
+    }else if(cta_type=='page'){
+        check = { "screen": onclick }
+    }else{
+        check = { "modal": onclick }
+    }
+    try {
+        let order = after_position + 1;
+        const result = new Sitebody({
+            user:_id,
+            site,
+            screen,
+            order,
+            type: 'faq',
+            title:{text: title},
+            sub_title: subtitle,
+            model,
+            call_to_action:{
+                enabled: cta_enabled,
+                anchor,
+                type: cta_type,
+                onclick: check
+            },
+            faqs
+        })
+        // update others order before saving
+        await Sitebody.updateMany(
+            {
+                $and:[
+                    {site:site},
+                    {user:_id},
+                    {screen:screen},
+                    {show_on: show_on === "page" ? { page:true } : { modal:show_on }},
+                    {status:'active'},
+                    {order: {$gt: after_position}}
+                ]
+            },
+            {
+                $inc:{order: 1}
+            }
+        )
+        await result.save()
+        // create modal if cta_type is qual to modal
+        if(cta_type=='modal'){
+            const modal = new Modal({
+                user:_id,
+                site,
+                screen,
+                widget: result._id,
+                title: modal_title,
+            })
+            await modal.save()
+        }
+        res.status(200).json({
+            success: true,
+            result
+        })
+    } catch (error) {
+        serverError(res, error)
+    }
+}
+

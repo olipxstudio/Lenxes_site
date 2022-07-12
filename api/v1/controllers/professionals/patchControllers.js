@@ -1,6 +1,7 @@
 const User = require("../../models/users/User");
 const Site = require("../../models/professionals/Site");
 const Nav = require("../../models/professionals/Nav");
+const Modal = require("../../models/professionals/Modal");
 
 
 const { clientError, serverError } = require("../../02_utils/common");
@@ -123,8 +124,8 @@ exports.updateSiteNav = async (req, res) => {
             },
             "_id"
         )
-        if(check_name!=''){
-            return clientError(res, "Nav name already exist")
+        if(check_name==null || check_name==''){
+            return clientError(res, "Nav not found")
         }
         const result = await Nav.findOneAndUpdate(
             {
@@ -224,6 +225,125 @@ exports.updateCTA = async (req, res) => {
         res.status(200).json({
             success: true,
             data: result,
+        })
+    } catch (error) {
+        serverError(res, error)
+    }
+}
+
+
+// @desc: update Team members section in site || @route: PATCH /api/professionals/patch/updateTeam  || @access:public
+exports.updateTeam = async (req, res) => {
+    const {_id} = req.user
+    const {sitebody_id, title, subtitle, team, site, screen, cta_enabled, anchor, cta_type, onclick, modal_title, modal_subtitle} = req.body // team array of user(user id) & position
+    let check;
+    if(cta_type=='external'){
+        check = { "link": onclick }
+    }else if(cta_type=='page'){
+        check = { "screen": onclick }
+    }else{
+        check = { "modal": onclick }
+    }
+    try {
+        const result = await Sitebody.findOneAndUpdate(
+            {
+                _id: sitebody_id
+            },
+            {
+                $set:{
+                    title:{text: title},
+                    sub_title: subtitle,
+                    call_to_action:{
+                        enabled: cta_enabled,
+                        anchor,
+                        type: cta_type,
+                        onclick: check
+                    },
+                    team
+                }
+            }
+        )
+        
+        // create modal if cta_type is qual to modal
+        const checkModalExist = await Modal.findOne({
+            $and:[
+                {user:_id},
+                {site},
+                {widget: result._id}
+            ]
+        })
+        if(checkModalExist.length>0){
+            if(cta_type=='modal'){ // update
+                const modal = await Modal.findOneAndUpdate(
+                    {
+                        $and:[
+                            {user:_id},
+                            {site},
+                            {"show_on.modal": checkModalExist._id}
+                        ]
+                    },
+                    {
+                        title: modal_title,
+                        subtitle: modal_subtitle
+                    }
+                )
+                await modal.save()
+            }else{ // delete
+                await Modal.findOneAndDelete({widget: result._id})
+                await Sitebody.findOneAndDelete({
+                    $and:[
+                        {user:_id},
+                        {site},
+                        {"show_on.modal": checkModalExist._id}
+                    ]
+                })
+            }
+        }else{
+            if(cta_type=='modal'){ // create new
+                const modal = new Modal({
+                    user:_id,
+                    site,
+                    screen,
+                    widget: result._id,
+                    title: modal_title,
+                })
+                await modal.save()
+            }
+        }
+        // Send notification to all team members - coming soon
+        res.status(200).json({
+            success: true,
+            result
+        })
+    } catch (error) {
+        serverError(res, error)
+    }
+}
+
+
+
+// @desc: update Testimonials || @route: PATCH /api/professionals/patch/updateTestimonials  || @access:public
+exports.updateTestimonials = async (req, res) => {
+    const {_id} = req.user
+    const {sitebody_id, title, subtitle, site, screen, after_position, show_on} = req.body
+    try {
+        const result = Site.aggregate([
+            { $lookup:
+                {
+                    from: 'Nav',
+                    localField: 'site',
+                    foreignField: '_id',
+                    as: 'sitedetails'
+                }
+            }
+        ]).toArray(function(err, res) {
+            if (err) throw err;
+            console.log(JSON.stringify(res));
+        });
+        
+        res.status(200).json({
+            success: true,
+            result
         })
     } catch (error) {
         serverError(res, error)
