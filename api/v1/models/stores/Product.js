@@ -1,5 +1,33 @@
 const mongoose = require("mongoose");
-const { Schema, SchemaTypes, model } = mongoose;
+const { Schema, SchemaTypes, model, ObjectID } = mongoose;
+
+// var ObjectID = require('mongodb').ObjectID;
+// const Variant = new Schema(
+//     {
+//                 color_name: {
+//                     type: String,
+//                 },
+//                 color_code: {
+//                     type: String,
+//                 },
+//                 color_thumbnail: {
+//                     type: String,
+//                 },
+//                 items: [
+//                   {
+//                     size: {
+//                         type: String,
+//                     },
+//                     qunatity: {
+//                         type: Number,
+//                     },
+//                     price: {
+//                         type: Number,
+//                     },
+//                   },
+//                 ],
+//     }
+// )
 
 const ProductSchema = new Schema(
     {
@@ -48,7 +76,6 @@ const ProductSchema = new Schema(
         },
         variants: [
             {
-                type: Array,
                 color_name: {
                     type: String,
                 },
@@ -59,17 +86,17 @@ const ProductSchema = new Schema(
                     type: String,
                 },
                 items: [
-                  {
-                    size: {
-                        type: String,
+                    {
+                        size: {
+                            type: String,
+                        },
+                        price: {
+                            type: Number,
+                        },
+                        quantity: {
+                            type: Number,
+                        }
                     },
-                    qunatity: {
-                        type: Number,
-                    },
-                    price: {
-                        type: Number,
-                    },
-                  },
                 ],
             },
         ],

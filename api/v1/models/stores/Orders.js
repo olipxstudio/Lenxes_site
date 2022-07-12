@@ -2,10 +2,18 @@ const mongoose = require('mongoose')
 const {Schema, SchemaTypes, model} = mongoose
 
 const OrdersScheme = new Schema({
-    product:{
-        type: SchemaTypes.ObjectId,
-        ref: 'Product',
-        required: true
+    product_details: {
+        product: {
+            type: SchemaTypes.ObjectId,
+            ref:'Product',
+            required: true
+        },
+        variant:{
+            type: SchemaTypes.ObjectId,
+        },
+        variant_item:{
+            type: SchemaTypes.ObjectId,
+        }
     },
     buyer:{
         type: SchemaTypes.ObjectId,
@@ -27,32 +35,40 @@ const OrdersScheme = new Schema({
     },
     order_status_id:{
         type: SchemaTypes.ObjectId,
-        ref: 'Orderstatus',
+        ref:'Orderstatus',
         required: true
     },
     transaction_id:{
         type: String
     },
     delivery:{
+        payment_set:{
+            type: Boolean, // if true and fee is 0 then free delivery
+            default: false
+        },
         type:{
-            type: String, // charged / free
-            default: 'charged'
+            type: String, // home / pickup
+            default: 'home'
         },
-        home:{
+        pickup_location:{
+            type: String,
+            default: null
+        },
+        fee:{
             type: Number,
             default: 0
         },
-        pickup:{
-            type: Number,
-            default: 0
+        duration:{
+            type: String
         },
         instruction:{
-            type: String
+            type: String,
+            default: null
         }
     },
     status:{
         type: String,
-        default: 'pending'
+        default: 'paid' // paid, declined, completed
     },
     date:{
         type: Date,

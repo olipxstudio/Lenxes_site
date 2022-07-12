@@ -17,6 +17,11 @@ const ModalScheme = new Schema({
         ref: "Nav",
         required: true,
     },
+    widget:{
+        type: SchemaTypes.ObjectId,
+        ref: "Sitebody",
+        required: true,
+    },
     title:{
         type: String,
         default: 'Modal Title'

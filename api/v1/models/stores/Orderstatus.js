@@ -12,6 +12,11 @@ const OrderstatusScheme = new Schema({
         ref: 'User',
         required: true
     },
+    store: {
+        type: SchemaTypes.ObjectId,
+        ref:'Store',
+        required: true
+    },
     channel: {
         type: String // card, offline, transfer
     },
@@ -38,21 +43,26 @@ const OrderstatusScheme = new Schema({
         type: Number
     },
     delivery_method:{
-        type: String // shipping, pickup, online
+        type: String // parcel (provided through notification), delivery, pickup (from store), online (for digital)
     },
     delivery_id:{
         type: SchemaTypes.ObjectId,
         ref: 'Delivery'
     },
     delivery_token:{
-        type: String
+        buyer:{
+            type: String
+        },
+        seller:{
+            type: String // show in various formats (e.g. --**--**, **--**--, ****----, ----****, *-*-*-*-, -*-*-*-*, **----**, --****--)
+        }
     },
     transaction_id:{
         type: String
     },
     status:{
         type: String,
-        default: 'pending'
+        default: 'paid' // paid, declined, completed
     },
     date:{
         type: Date,

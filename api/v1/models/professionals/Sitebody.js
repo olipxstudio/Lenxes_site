@@ -32,7 +32,7 @@ const SitebodySchema = new Schema(
         },
         type:{
             type: String
-            // banner, skillset, experience, projects, text, links, video, team, testimonials, values, connect, downloadable, partners, stats, hcards, section, services
+            // banner, skillset, experience, projects, text, links, video, team, testimonials, values, connect, downloadable, partners, stats, hcards, section, services, faq
         },
         title:{
             text:{
@@ -274,6 +274,43 @@ const SitebodySchema = new Schema(
                 },
                 text:{
                     type: String
+                }
+            }
+        ],
+        faqs:[
+            {
+                type: Array,
+                question:{
+                    type: String
+                },
+                answer:{
+                    type: String
+                },
+                call_to_action:{
+                    enabled:{
+                        type: Boolean,
+                        default: false
+                    },
+                    anchor:{
+                        type: String
+                    },
+                    type:{
+                        type: String
+                        // modal / external / page
+                    },
+                    onclick:{
+                        link:{
+                            type: String
+                        },
+                        screen:{
+                            type: SchemaTypes.ObjectId,
+                            ref: 'Nav'
+                        },
+                        modal:{
+                            type: SchemaTypes.ObjectId,
+                            ref: 'Modal'
+                        }
+                    }
                 }
             }
         ],
