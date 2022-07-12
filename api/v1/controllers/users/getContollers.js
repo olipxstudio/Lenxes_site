@@ -16,6 +16,11 @@ const Product = require("../../models/stores/Product");
 const DiscussChatNotify = require("../../models/users/DiscussChatNotify");
 const Cart = require("../../models/users/Cart");
 const CartCollection = require("../../models/users/CartCollection");
+const Site = require("../../models/professionals/Site");
+const Sitebody = require("../../models/professionals/Sitebody");
+const StoreNotification = require("../../models/stores/Notification");
+const Orders = require("../../models/stores/Orders");
+const Orderstatus = require("../../models/stores/Orderstatus");
 
 // get all users
 // @desc: get all users from users || @route: GET /api/users/get/allUsers  || @access:admin
@@ -645,36 +650,26 @@ exports.getRandomProducts = async (req, res) => {
 exports.getCartCollections = async (req, res) => {
     const { _id } = req.user;
     try {
-        // const result = await CartCollection.aggregate(
-        //     [
-        //         {
-        //             $lookup: {
-        //                 from: 'cart',
-        //                 // let: {_id: '$collection_id'},
-        //                 localField: '_id',
-        //                 foreignField: 'collection_id',
-        //                 as: 'carty',
-        //                 // pipeline: [
-        //                 //     {$match: {}},
-        //                 //     {$project:{
-        //                 //         quantity: 1,
-        //                 //         product: 1,
-        //                 //         owner: 1
-        //                 //     }}
-        //                 // ]
-        //             }
-        //         }
-        //     ]
-        // )
-        const result = await CartCollection.aggregate.lookup(
+        const result = await CartCollection.find(
             {
-                from: 'cart', localField: '_id', foreignField: 'collection_id', as: 'carty'
+                $and:[
+                    {user:_id},
+                    {status:'active'}
+                ]
             }
         )
-        
+        const data = await Promise.all(
+            result.map(async(items)=>{
+                // Count products in collection
+                const count = await Cart.find({collection_id:items._id}).count()
+                // Get all products in collection - this is for sampling the product to the user until the updated cart items are fetched with full details, when fetch is done then update cart - This would be done @ getCartProducts API
+                const details = await Cart.find({collection_id:items._id}).populate("user","fullname photo username").populate("product_details.product","sku title photo condition variants").populate("store")
+                return {...items.toJSON(), num: count, cart: details};
+            })
+        )
         res.status(200).json({
             success: true,
-            result
+            data
         });
     } catch (error) {
         console.log(error);
@@ -683,30 +678,382 @@ exports.getCartCollections = async (req, res) => {
 }
 
 
-// @desc: get all products in a user collection || @route: GET /api/users/get/getCartProducts || @access:users
-exports.getCartProducts = async (req, res) => {
+// @desc: get all product in a cart collection || @route: GET /api/users/get/getCartQualifiedProducts || @access:users
+exports.getCartQualifiedProducts = async (req, res) => {
     const { _id } = req.user;
     const { collection_id } = req.body;
     try {
-        const result = await Cart.aggregate(
-            [
-                {$match:{}},
-                {$group:{_id: "$store", total:{$sum: 1}}},
-                {$project:{
-                    product: 1,
-                    owner: 1,
-                    quamtity: 1
-                }}
+        const getCart = await Cart.find({
+            $and:[
+                {collection_id},
+                {user:_id},
+                {status:'active'}
             ]
+        })
+        const resolve = await Promise.all(
+            getCart.map(async(items)=>{
+                const get = await Product.aggregate([
+                    {
+                        $match: {
+                            _id: items.product_details.product
+                        }
+                    },
+                    {
+                        $project: {
+                            variants: {
+                                $first: {
+                                    $filter: {
+                                        input: "$variants",
+                                        cond: {
+                                            $eq: [
+                                                "$$this._id",
+                                                items.product_details.variant
+                                            ]
+                                        }
+                                    }
+                                }
+                            },
+                            _id: 1,
+                            user: 1,
+                        }
+                    },
+                    {
+                        $set: {
+                            "variants.items": {
+                                $filter: {
+                                    input: "$variants.items",
+                                    cond: {
+                                        $eq: [
+                                            "$$this._id",
+                                            items.product_details.variant_item
+                                        ]
+                                    }
+                                }
+                            },
+                            _id: "$$REMOVE"
+                        }
+                    }
+                ]);
+                let cartQty = items.quantity;
+                let prodQty = get[0].variants.items[0].quantity;
+                let owner_id = get[0].user;
+                if(cartQty>prodQty){
+                    if(prodQty==0){
+                        await Cart.findOneAndUpdate(
+                            {_id: items._id},
+                            {
+                                $set:{
+                                    quantity: prodQty,
+                                    status: 'outbond',
+                                    delivery:{
+                                        payment_set: false,
+                                        type: 'home',
+                                        pickup_location: null,
+                                        fee: 0
+                                    }
+                                }
+                            }
+                        )
+                    }else{
+                        await Cart.findOneAndUpdate(
+                            {_id: items._id},
+                            {
+                                $set:{
+                                    quantity: prodQty,
+                                    delivery:{
+                                        payment_set: false,
+                                        type: 'home',
+                                        pickup_location: null,
+                                        fee: 0
+                                    }
+                                }
+                            }
+                        )
+                        // Only send notification when item is still in stock
+                        // First find any notification that concerns this delivery and delete
+                        await StoreNotification.findOneAndDelete({
+                            $and:[
+                                {sender: _id},
+                                {receiver: owner_id},
+                                {store: items.store},
+                                {type: 'delivery'},
+                                {"delivery.cart_id": items._id}
+                            ]
+                        })
+                        // send notification to seller for new delivery fee
+                        const getLocation = await User.findOne({_id})
+                        const location_concat = getLocation.address.address_line1+', '+getLocation.address.lga+', '+getLocation.address.state+', '+getLocation.address.country;
+                        const sendNotification = new StoreNotification({
+                            sender:_id,
+                            receiver: owner_id,
+                            store: items.store,
+                            type:'delivery',
+                            delivery:{
+                                product: items.product_details.product,
+                                location:location_concat,
+                                cart_id: items._id
+                            }
+                        })
+                        await sendNotification.save() // End notification
+                    }
+                }
+            })
         )
-        
+        const getQualifiedItems = await Cart.find({
+            $and:[
+                {collection_id},
+                {user:_id},
+                {status:'active'},
+                {"delivery.payment_set":true}
+            ]
+        }).populate("user","fullname photo username").populate("product_details.product","sku title photo condition variants").populate("store")
         res.status(200).json({
             success: true,
-            result
+            getQualifiedItems
         });
     } catch (error) {
         console.log(error);
         serverError(res, error);
     }
 }
-// collection_id: collection_id
+
+
+// @desc: get all product in a cart collection that are not qualified for payment || @route: GET /api/users/get/getCartNotQualified || @access:users
+exports.getCartNotQualified = async (req, res) => {
+    const { _id } = req.user;
+    const { collection_id } = req.body;
+    try {
+        const getNotQualifiedItems = await Cart.find({
+            $and:[
+                {collection_id},
+                {user:_id},
+                {status:'active'},
+                {"delivery.payment_set":false}
+            ]
+        }).populate("user","fullname photo username").populate("product_details.product","sku title photo condition variants").populate("store")
+        res.status(200).json({
+            success: true,
+            count: getNotQualifiedItems.length,
+            getNotQualifiedItems
+        });
+    } catch (error) {
+        console.log(error);
+        serverError(res, error);
+    }
+}
+
+
+
+// @desc: Get user details and four most recent posts - fro previewing user to follow details on empty feed || @route: GET /api/users/get/getFeedUserPreview  || @access:public
+exports.getFeedUserPreview = async (req, res) => {
+    const { _id } = req.user;
+    const { user_id } = req.body;
+    try {
+        const getDetails = await User.findOne({_id: user_id})
+        const getFourPosts = await Post.find(
+            {
+                $and:[
+                    {user: user_id},
+                    {status:'Published'}
+                ]
+            }
+        ).sort('-createdAt')
+        .limit(4)
+        res.status(200).json({
+            success: true,
+            getDetails,
+            getFourPosts
+        });
+    } catch (error) {
+        serverError(res, error);
+    }
+};
+
+
+// @desc: Get user Site brand name and Hero - for previewing user business on post || @route: GET /api/users/get/getSitePreview  || @access:public
+exports.getSitePreview = async (req, res) => {
+    const { _id } = req.user;
+    const { user_id } = req.body;
+    try {
+        const getDetails = await Site.findOne({user: user_id},"business_name motto")
+        const getHero = await Sitebody.findOne(
+            {
+                $and:[
+                    {site: getDetails._id},
+                    {"show_on.page":true},
+                    {order:1},
+                    {user: user_id},
+                    {type:'banner'}
+                ]
+            },
+            "title sub_title banner"
+        ).sort('-createdAt')
+        .limit(1)
+        res.status(200).json({
+            success: true,
+            getDetails,
+            getHero
+        });
+    } catch (error) {
+        serverError(res, error);
+    }
+};
+
+
+// @desc: Get suggested people base on user industry - for explore page || @route: GET /api/users/get/getSuggestedPeople/number - 7 per time || @access:public
+exports.getSuggestedPeople = async (req, res) => {
+    const { _id } = req.user;
+    const { number } = req.params;
+    try {
+        const data = await User.findOne({_id},"industry")
+        const result = await User.find({
+            $and:[
+                {industry:data.industry},
+                {status:'active'}
+            ]
+        }).limit(7)
+        .skip(number)
+        res.status(200).json({
+            success: true,
+            result
+        });
+    } catch (error) {
+        serverError(res, error);
+    }
+};
+
+
+// @desc: Get explore User search - for explore page || @route: GET /api/users/get/getExploreUserSearch  || @access:public
+exports.getExploreUserSearch = async (req, res) => {
+    const { _id } = req.user;
+    const { keyword } = req.body;
+    try {
+        const result = await User.find(
+            {
+                $and:[
+                    {fullname: new RegExp('.*' + keyword + '.*', 'i')},
+                    {status: 'active'}
+                ]
+            },
+            "fullname photo profession username"
+        )
+        res.status(200).json({
+            success: true,
+            result
+        });
+    } catch (error) {
+        serverError(res, error);
+    }
+};
+
+
+// @desc: Get explore Product search - for explore page || @route: GET /api/users/get/getExploreProductSearch  || @access:public
+exports.getExploreProductSearch = async (req, res) => {
+    const { _id } = req.user;
+    const { keyword } = req.body;
+    try {
+        const result = await Product.find(
+            {
+                $and:[
+                    {title: new RegExp('.*' + keyword + '.*', 'i')},
+                    {status: 'active'}
+                ]
+            },
+            "title photo category subcategory subsetcategory condition"
+        )
+        .populate("category","name")
+        .populate("subcategory","name")
+        .populate("enquiry.product");
+        
+        res.status(200).json({
+            success: true,
+            result
+        });
+    } catch (error) {
+        serverError(res, error);
+    }
+};
+
+
+// @desc: Get explore Product - Curated || @route: GET /api/users/get/getExploreProducts/:number - 12 per time || @access:public
+exports.getExploreProducts = async (req, res) => {
+    const { _id } = req.user;
+    const { number } = req.params;
+    try {
+        const result = await Product.find(
+            {status: 'active'},
+            "title photo category subcategory subsetcategory condition"
+        )
+        .limit(12)
+        .skip(number)
+        .populate("category","name")
+        .populate("subcategory","name")
+        .populate("enquiry.product");
+        
+        res.status(200).json({
+            success: true,
+            result
+        });
+    } catch (error) {
+        serverError(res, error);
+    }
+};
+
+
+
+// @desc: Get product reviews twelve per time - Curated || @route: GET /api/users/get/getProductReviews/:number - 12 per time || @access:public
+exports.getProductReviews = async (req, res) => {
+    const { _id } = req.user;
+    const { number } = req.params;
+    const { product_id } = req.body;
+    try {
+        const result = await Comments.find(
+            {
+                $and:[
+                    {post: product_id},
+                    {type: "Product"},
+                    {status: "active"}
+                ]
+            },
+            "user post text photo"
+        )
+        .limit(12)
+        .skip(number)
+        
+        res.status(200).json({
+            success: true,
+            result
+        });
+    } catch (error) {
+        serverError(res, error);
+    }
+};
+
+
+// @desc: get all user orders - pending or done - 15 per time || @route: GET /api/users/get/getAllOrders/:status/:number  || @access:public
+exports.getAllOrders = async (req, res) => {
+    const { _id } = req.user;
+    const { status, number } = req.params;
+    try {
+        const result = await Orders.find(
+            {
+                $and:[
+                    {buyer: _id},
+                    {status}
+                ]
+            }
+        )
+        .limit(15)
+        .skip(number)
+        .populate("store","shop_name")
+        .populate("seller","fullname photo username")
+        .populate("order_status_id","payment_status amount shipping total_amount delivery_method delivery_token.buyer")
+        
+        res.status(200).json({
+            success: true,
+            result
+        });
+    } catch (error) {
+        serverError(res, error);
+    }
+};

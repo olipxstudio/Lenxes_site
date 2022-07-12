@@ -3,6 +3,9 @@ const Category = require("../../models/stores/Category");
 const Subcategory = require("../../models/stores/Subcategory");
 const Subsetcategory = require("../../models/stores/Subsetcategory");
 const Cart = require("../../models/users/Cart");
+const Orders = require("../../models/stores/Orders");
+const Orderstatus = require("../../models/stores/Orderstatus");
+const Product = require("../../models/stores/Product");
 
 
 const { clientError, serverError } = require("../../02_utils/common");
@@ -206,7 +209,7 @@ exports.updateSubSetCategory = async (req, res) => {
 // @desc: update cart delivery fee || @route: PATCH /api/stores/patch/updateCartDelivery  || @access:public
 exports.updateCartDelivery = async (req, res) => {
     const {_id} = req.user
-    const {cart_id, type, home, pickup, instruction} = req.body;
+    const {cart_id, type, pickup_location, fee, duration, instruction} = req.body;
     try {
         const result = await Cart.findOneAndUpdate(
             {
@@ -215,9 +218,11 @@ exports.updateCartDelivery = async (req, res) => {
             {
                 $set:{
                     delivery:{
-                        type,
-                        home,
-                        pickup,
+                        payment_set: true,
+                        type, // home / pickup
+                        pickup_location,
+                        fee,
+                        duration,
                         instruction
                     }
                 }
@@ -233,4 +238,60 @@ exports.updateCartDelivery = async (req, res) => {
     }
 }
 
+
+// @desc: update order to declined || @route: PATCH /api/stores/patch/updateAndDeclineOrder  || @access:public
+exports.updateAndDeclineOrder = async (req, res) => {
+    const {_id} = req.user
+    const { store, order_id, reason } = req.body;
+    try {
+        const result = await Orders.findOneAndUpdate(
+            {
+                $and:[
+                    {store},
+                    {_id: order_id}
+                ]
+            },
+            {
+                $set:{
+                    status: 'declined'
+                }
+            }
+        )
+        res.status(200).json({
+            success: true,
+            message:"Order declined successfully",
+            data: result,
+        })
+    } catch (error) {
+        clientError(res, error)
+    }
+}
+
+
+
+// @desc: update product status to trash or active || @route: PATCH /api/stores/patch/updateProductStatus  || @access:public
+exports.updateProductStatus = async (req, res) => {
+    const {_id} = req.user
+    const { product_id } = req.body;
+    try {
+        const get = await Product.findOne({_id: product_id},"status")
+        const stat = get.status;
+        const result = await Product.findOneAndUpdate(
+            {
+                _id: product_id
+            },
+            {
+                $set:{
+                    status: stat == 'active' ? 'trash' : 'active'
+                }
+            }
+        )
+        res.status(200).json({
+            success: true,
+            data: result,
+        })
+    } catch (error) {
+        clientError(res, error)
+    }
+}
 

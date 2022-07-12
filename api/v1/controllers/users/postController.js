@@ -15,6 +15,12 @@ const Social = require("../../models/users/Social");
 const CartCollection = require("../../models/users/CartCollection");
 const Cart = require("../../models/users/Cart");
 const StoreNotification = require("../../models/stores/Notification");
+const Social_Industries = require("../../models/users/Social_Industries");
+const Feedback = require("../../models/users/Feedback");
+const Orders = require("../../models/stores/Orders");
+const Orderstatus = require("../../models/stores/Orderstatus");
+const Product = require("../../models/stores/Product");
+const Store = require("../../models/stores/Store");
 
 const {
   generateUniqueUserId,
@@ -56,6 +62,8 @@ exports.createNewUser = async (req, res) => {
       //   state: state,
       //   state_code: state_code,
       // },
+      
+        credit: 5000,
       status: "pending",
     });
 
@@ -86,7 +94,7 @@ exports.createNewUser = async (req, res) => {
 };
 
 // login user and send token
-// @desc: login user and send token || @route: POST /api/users/post/user/login  || @access:public
+// @desc: login user and send token || @route: POST /api/users/post/login  || @access:public
 exports.loginUser = async (req, res) => {
   const { password } = req.body;
   const user_datas = req.user;
@@ -795,10 +803,11 @@ exports.saveComment = async (req, res) => {
   const { post, text, photo, tagged_product, replied_to, replied_under } =
     req.body;
   try {
-    const post_owner = await Post.findOne({ post });
+    const post_owner = await Post.findOne({ _id: post });
     const result = new Comments({
       user: _id,
       post,
+      type: 'Post', // Post, Product, Jive, Question
       text,
       photo,
       tagged_product,
@@ -946,7 +955,7 @@ exports.createCollection = async (req, res) => {
 // @desc: Post product to cart under a collection || @route: POST /api/users/post/saveToCart  || @access:public
 exports.saveToCart = async (req, res) => {
     const { _id } = req.user;
-    const { collection, product, owner, store, quantity } = req.body;
+    const { collection, product, variant, variant_item, owner, store, quantity } = req.body;
     try {
         let collection_id = collection;
         if(collection=='' || collection==null){
@@ -967,10 +976,13 @@ exports.saveToCart = async (req, res) => {
                 collection_id = find._id
             }
         }
-        const check = await Cart.findOne({
+        // Check if it already exist in Cart for this user
+        const check = await Cart.find({
             $and:[
                 {user: _id},
-                {product},
+                {"product_details.product": product},
+                {"product_details.variant": variant},
+                {"product_details.variant_item": variant_item},
                 {store}
             ]
         }).count()
@@ -980,10 +992,19 @@ exports.saveToCart = async (req, res) => {
                 message: "Product already in cart"
             });
         }
+        // Check quantity if okay
+        
+        
+        
+        // Add to cart
         const result = new Cart({
             user: _id,
             collection_id,
-            product,
+            product_details: {
+                product,
+                variant,
+                variant_item
+            },
             store,
             quantity
         })
@@ -1011,4 +1032,305 @@ exports.saveToCart = async (req, res) => {
     } catch (error) {
         serverError(res, error);
     }
+}; // 62b46621c6c6a24c7afc4e2e
+
+// add to industries
+exports.indust = async (req, res) => {
+    const { _id } = req.user;
+    const { name } = req.body;
+    try {
+        const result = new Social_Industries({
+            title: name
+        })
+        await result.save()
+        res.status(200).json({
+            success: true,
+            get
+        });
+    } catch (error) {
+        serverError(res, error);
+    }
 };
+
+
+
+// @desc: User send feedback || @route: POST /api/users/post/sendFeedBack  || @access:public
+exports.sendFeedBack = async (req, res) => {
+    const { _id } = req.user;
+    const { feedback } = req.body;
+    try {
+        const result = new Feedback({
+            user:_id,
+            feedback
+        })
+        await result.save()
+        res.status(200).json({
+            success: true,
+            message: "Feedback sent successfully",
+            result
+        });
+    } catch (error) {
+        serverError(res, error);
+    }
+};
+
+
+
+// @desc: Post user orders after payment || @route: POST /api/users/post/saveUserOrders  || @access:public
+exports.saveUserOrders = async (req, res) => {
+    const { _id } = req.user;
+    const { channel, collection_id, transaction_id } = req.body;
+    // generate random strings for order id
+    var randomString = function (len, bits)
+    {
+        bits = bits || 36;
+        var outStr = "", newStr;
+        while (outStr.length < len)
+        {
+            newStr = Math.random().toString(bits).slice(2);
+            outStr += newStr.slice(0, Math.min(newStr.length, (len - outStr.length)));
+        }
+        return outStr.toUpperCase();
+    };
+    let token = randomString(8, 32)
+    let format = Math.floor((Math.random() * 8) + 1);
+    let seller_format;
+    // show in various formats (e.g. --**--**, **--**--, ****----, ----****, *-*-*-*-, -*-*-*-*, **----**, --****--)
+    switch (format) {
+        case 1:
+            seller_format = token.substr(0, 2)+'**'+token.substr(4, 2)+'**';
+            break;
+        case 2:
+            seller_format = '**'+token.substr(2, 2)+'**'+token.substr(6, 2);
+            break;
+        case 3:
+            seller_format = '****'+token.substr(4, 4);
+            break;
+        case 4:
+            seller_format = token.substr(0, 4)+'****';
+            break;
+        case 5:
+            seller_format = '*'+token.substr(1, 1)+'*'+token.substr(3, 1)+'*'+token.substr(5, 1)+'*'+token.substr(7, 1);
+            break;
+        case 6:
+            seller_format = token.substr(0, 1)+'*'+token.substr(2, 1)+'*'+token.substr(4, 1)+'*'+token.substr(6, 1)+'*';
+            break;
+        case 7:
+            seller_format = '**'+token.substr(2, 4)+'**';
+            break;
+        case 8:
+            seller_format = token.substr(0, 2)+'****'+token.substr(6, 2);
+    }
+    try {
+        const items = await Cart.find({ // only items that delivery is set
+            $and:[
+                {collection_id},
+                {user:_id},
+                {status:'active'},
+                {"delivery.payment_set": true}
+            ]
+        },
+        "quantity product_details store delivery"
+        )
+        let orderStatusId;
+        for (let index = 0; index < items.length; index++) {
+            const surf = items[index];
+            const store_owner = await Store.findOne({_id: surf.store},"user shop_name")
+            const examine = await Orderstatus.findOne({
+                $and:[
+                    {buyer: _id},
+                    {store: surf.store},
+                    {transaction_id}
+                ]
+            },"_id transaction_id")
+            if(examine == null){
+                const samestore = await Cart.find(
+                    {
+                        $and:[
+                            {collection_id},
+                            {user:_id},
+                            {status:'active'},
+                            {"delivery.payment_set": true},
+                            {store: surf.store},
+                        ]
+                    }
+                )
+                let subTot = 0;
+                let cartDeliveryFee = 0;
+                let thisTotal = 0;
+                for (let pos = 0; pos < samestore.length; pos++) {
+                    const query = samestore[pos];
+                    const get = await Product.aggregate([
+                        {
+                            $match: {
+                                _id: query.product_details.product
+                            }
+                        },
+                        {
+                            $project: {
+                                variants: {
+                                    $first: {
+                                        $filter: {
+                                            input: "$variants",
+                                            cond: {
+                                                $eq: [
+                                                    "$$this._id",
+                                                    query.product_details.variant
+                                                ]
+                                            }
+                                        }
+                                    }
+                                },
+                                _id: 0,
+                            }
+                        },
+                        {
+                            $set: {
+                                "variants.items": {
+                                    $filter: {
+                                        input: "$variants.items",
+                                        cond: {
+                                            $eq: [
+                                                "$$this._id",
+                                                query.product_details.variant_item
+                                            ]
+                                        }
+                                    }
+                                },
+                                _id: "$$REMOVE"
+                            }
+                        }
+                    ]);
+                    let prodPrice = get[0].variants.items[0].price;
+                    let cartQty = query.quantity;
+                    subTot = prodPrice * cartQty;
+                    cartDeliveryFee = query.delivery.fee;
+                    let total = subTot - (- cartDeliveryFee);
+                    thisTotal = thisTotal + total;
+                }
+                // Save to orderstatus ----------------------- //
+                const save = new Orderstatus({
+                    buyer: _id,
+                    seller: store_owner.user,
+                    store: surf.store,
+                    channel,
+                    payment_status: 'paid',
+                    amount: subTot,
+                    shipping: cartDeliveryFee,
+                    total_amount: thisTotal,
+                    delivery_method: 'parcel',
+                    delivery_token: {
+                        buyer: token,
+                        seller: seller_format
+                    },
+                    transaction_id,
+                })
+                await save.save()
+                orderStatusId = save._id;
+                // Send Order Notification -------------------- //
+                const notify = new StoreNotification({
+                    sender:_id,
+                    receiver: store_owner.user,
+                    store: surf.store,
+                    type:'order',
+                    order: save._id
+                })
+                await notify.save()
+            }else{
+                orderStatusId = examine._id;
+            }
+            // save to orders collection ---------------------- //
+            const save = new Orders({
+                product_details: surf.product_details,
+                buyer: _id,
+                seller: store_owner.user,
+                store: surf.store,
+                quantity: surf.quantity,
+                order_status_id: orderStatusId,
+                transaction_id,
+                delivery: surf.delivery,
+            })
+            await save.save()
+            // Reduce the product quantity ----------------------- //
+            await Product.updateOne(
+                {
+                    "_id": surf.product_details.product
+                },
+                {
+                    $inc: {
+                        "variants.$[i].items.$[j].quantity": -surf.quantity
+                    }
+                },
+                {
+                    arrayFilters: [
+                        {
+                            "i._id": surf.product_details.variant
+                        },
+                        {
+                            "j._id": surf.product_details.variant_item
+                        }
+                    ]
+                }
+            )
+        }
+        // Delete from cart
+        await Cart.deleteMany({ // only items that delivery is set
+            $and:[
+                {collection_id},
+                {user:_id},
+                {status:'active'},
+                {"delivery.payment_set": true}
+            ]
+        },
+        )
+        // Send the report to user -------------------------- //
+        res.status(200).json({
+            success: true,
+            message: "Order successfully",
+            items
+        });
+    } catch (error) {
+        serverError(res, error);
+    }
+};
+
+
+
+// @desc: save review to product after purchase || @route: POST /api/users/post/saveProductReview  || @access:public
+exports.saveProductReview = async (req, res) => {
+    const { _id } = req.user;
+    const { post, text, photo, tagged_product } = req.body;
+    try {
+        const post_owner = await Product.findOne({ _id: post });
+        const result = new Comments({
+            user: _id,
+            post,
+            type: 'Product', // Post, Product, Jive, Question
+            text,
+            photo,
+            tagged_product
+        });
+        await result.save();
+        
+        if (post_owner.user != _id) {
+            // No notifications for review yet
+            // const notifyObject = {
+            //     res,
+            //     sender: _id,
+            //     receiver: post_owner.user,
+            //     purpose: "commented",
+            //     init_on: "post",
+            //     identity: post,
+            // };
+            // await sendNotification(notifyObject);
+        }
+        res.status(200).json({
+            success: true,
+            message: "Comment saved successfully",
+            data: result,
+        });
+    } catch (error) {
+        clientError(res, error);
+    }
+};
+  
